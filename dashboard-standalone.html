@@ -658,6 +658,8 @@
             .chartBox-scroll { overflow: visible !important; }
             .chartBox-scroll canvas { min-width: 0 !important; width: 100% !important; }
             .card { page-break-inside: avoid; }
+            .wrap { padding: 12px !important; }
+            #conteudo { display: block !important; }
         }
     </style>
 </head>
@@ -1442,7 +1444,15 @@
         })();
 
         function exportarPDF() {
-            window.print();
+            var btn = document.getElementById('btnExportPdf');
+            btn.textContent = '⏳ Preparando…';
+            btn.disabled = true;
+            // Aguarda gráficos e layout estabilizarem antes de imprimir
+            setTimeout(function() {
+                window.print();
+                btn.textContent = '🖨️ Exportar PDF';
+                btn.disabled = false;
+            }, 800);
         }
     </script>
 </body>
