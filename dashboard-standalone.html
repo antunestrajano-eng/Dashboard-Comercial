@@ -1,0 +1,1272 @@
+ <!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Dashboard Comercial — Confiance Energy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <style>
+        :root {
+            --bg: #0b1020;
+            --panel: #111a33;
+            --text: #e7ecff;
+            --muted: #aab3d6;
+            --brand: #6ee7ff;
+            --accent: #9b8cff;
+            --good: #57f287;
+            --warn: #ffcc66;
+            --danger: #ff6b6b;
+            --border: rgba(255, 255, 255, .10);
+            --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+            --radius: 18px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: radial-gradient(1200px 600px at 20% 0%, rgba(110, 231, 255, .16), transparent 60%),
+                radial-gradient(900px 500px at 80% 10%, rgba(155, 140, 255, .14), transparent 55%),
+                var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            backdrop-filter: blur(16px);
+            background: linear-gradient(to bottom, rgba(11, 16, 32, .95), rgba(11, 16, 32, .75));
+            border-bottom: 1px solid var(--border);
+        }
+
+        .wrap {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 20px 28px 28px;
+        }
+
+        .header-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo {
+            height: 52px;
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 0 8px rgba(110,231,255,.25));
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        h1 {
+            font-size: 17px;
+            font-weight: 800;
+            letter-spacing: -.02em;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        .status-pill {
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .04);
+            color: var(--muted);
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all .3s;
+        }
+
+        .status-pill.ok {
+            border-color: rgba(87, 242, 135, .3);
+            color: var(--good);
+        }
+
+        .status-pill.err {
+            border-color: rgba(255, 107, 107, .3);
+            color: var(--danger);
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .dot.pulse {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .3
+            }
+        }
+
+        .kpis {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 980px) {
+            .kpis {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 520px) {
+            .kpis {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .kpi {
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: linear-gradient(135deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .02));
+            backdrop-filter: blur(8px);
+            transition: transform .25s, box-shadow .25s;
+        }
+
+        .kpi:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .3);
+        }
+
+        .kpi .label {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+
+        .kpi .value {
+            font-size: 28px;
+            font-weight: 800;
+            margin-top: 8px;
+            background: linear-gradient(135deg, var(--text), var(--brand));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .kpi .hint {
+            color: var(--muted);
+            font-size: 11px;
+            margin-top: 8px;
+        }
+
+        .kpi.highlight .value {
+            background: linear-gradient(135deg, var(--good), var(--brand));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .card {
+            background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .025));
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-top: 16px;
+            overflow: hidden;
+        }
+
+        .card .hd {
+            padding: 18px 18px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card h2 {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .card .bd {
+            padding: 18px;
+        }
+
+        .charts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        @media (max-width: 980px) {
+            .charts {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chartBox {
+            padding: 16px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: rgba(0, 0, 0, .15);
+        }
+
+        .chartBox .chart-label {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 260px !important;
+        }
+
+        .tableWrap {
+            max-height: 450px;
+            overflow: auto;
+            border-radius: 14px;
+            margin-top: 14px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            text-align: left;
+            font-size: 11px;
+            color: var(--muted);
+            background: rgba(255, 255, 255, .05);
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        tbody td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, .05);
+            font-size: 13px;
+        }
+
+        tbody tr {
+            transition: background .2s;
+        }
+
+        tbody tr:hover {
+            background: rgba(110, 231, 255, .06);
+        }
+
+        .loading-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid var(--border);
+            border-top-color: var(--brand);
+            animation: spin .8s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        .erro-box {
+            color: var(--danger);
+            padding: 1.2rem 1.5rem;
+            background: rgba(255, 107, 107, .08);
+            border: 1px solid rgba(255, 107, 107, .2);
+            border-radius: 12px;
+            margin-top: 16px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .debug-box {
+            color: var(--warn);
+            padding: 1rem 1.5rem;
+            background: rgba(255, 204, 102, .08);
+            border: 1px solid rgba(255, 204, 102, .2);
+            border-radius: 12px;
+            margin-top: 12px;
+            font-size: 12px;
+            word-break: break-all;
+        }
+
+        .fade-in {
+            animation: fadeIn .5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        /* Filter bar */
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .filter-bar label {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        .filter-select {
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, .06);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+            transition: border-color .2s, box-shadow .2s;
+            min-width: 200px;
+        }
+
+        .filter-select:hover {
+            border-color: rgba(110, 231, 255, .3);
+        }
+
+        .filter-select:focus {
+            border-color: var(--brand);
+            box-shadow: 0 0 0 3px rgba(110, 231, 255, .15);
+        }
+
+        .filter-select option {
+            background: #1a2040;
+            color: var(--text);
+        }
+
+        .filter-count {
+            color: var(--muted);
+            font-size: 12px;
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .03);
+        }
+
+        /* ── Ranking ──────────────────────────────────── */
+        .rank-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .rank-tab {
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: rgba(255,255,255,.04);
+            color: var(--muted);
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        .rank-tab:hover { border-color: rgba(110,231,255,.3); color: var(--text); }
+
+        .rank-tab.active {
+            background: rgba(110,231,255,.12);
+            border-color: rgba(110,231,255,.5);
+            color: var(--brand);
+        }
+
+        .rank-list { display: flex; flex-direction: column; gap: 10px; }
+
+        .rank-row {
+            display: grid;
+            grid-template-columns: 48px 1fr auto;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,.03);
+            transition: background .2s, transform .2s;
+        }
+
+        .rank-row:hover { background: rgba(110,231,255,.06); transform: translateX(3px); }
+
+        .rank-badge {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .rank-badge.gold   { background: rgba(255,215,0,.15);  color: #ffd700; border: 1px solid rgba(255,215,0,.3); }
+        .rank-badge.silver { background: rgba(192,192,192,.12); color: #c0c0c0; border: 1px solid rgba(192,192,192,.3); }
+        .rank-badge.bronze { background: rgba(205,127,50,.12);  color: #cd7f32; border: 1px solid rgba(205,127,50,.3); }
+        .rank-badge.other  { background: rgba(255,255,255,.06); color: var(--muted); border: 1px solid var(--border); font-size: 14px; }
+
+        .rank-info { min-width: 0; }
+
+        .rank-name {
+            font-size: 14px;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .rank-meta {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 3px;
+        }
+
+        .rank-bar-wrap {
+            margin-top: 6px;
+            height: 4px;
+            border-radius: 99px;
+            background: rgba(255,255,255,.07);
+            overflow: hidden;
+        }
+
+        .rank-bar {
+            height: 100%;
+            border-radius: 99px;
+            background: linear-gradient(90deg, var(--brand), var(--accent));
+            transition: width .5s ease;
+        }
+
+        .rank-value {
+            font-size: 18px;
+            font-weight: 800;
+            text-align: right;
+            white-space: nowrap;
+            background: linear-gradient(135deg, var(--text), var(--brand));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            flex-shrink: 0;
+        }
+
+        .rank-value small {
+            display: block;
+            font-size: 11px;
+            font-weight: 400;
+            color: var(--muted);
+            -webkit-text-fill-color: var(--muted);
+            margin-top: 2px;
+            text-align: right;
+        }
+
+        /* Por Fonte view */
+        .fonte-grid { display: flex; flex-direction: column; gap: 14px; }
+
+        .fonte-vendedor-name {
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .fonte-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+        .fonte-chip {
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1px solid rgba(110,231,255,.2);
+            background: rgba(110,231,255,.06);
+            color: var(--brand);
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="wrap">
+            <div class="header-row">
+                <div class="brand">
+                    <img class="logo" src="logo-confiance.png" alt="Confiance Energy" />
+                    <div>
+                        <h1>Dashboard Comercial</h1>
+                        <p class="subtitle">Confiance Energy — dados da planilha Google Sheets</p>
+                    </div>
+                </div>
+                <div class="status-pill" id="statusPill">
+                    <span class="dot pulse"></span>
+                    <span id="statusText">Carregando…</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="wrap">
+        <div id="loading" class="loading-screen">
+            <div class="spinner"></div>
+            <p>Buscando dados da planilha…</p>
+        </div>
+        <div id="erro" style="display:none;"></div>
+
+        <div id="conteudo" style="display:none;">
+            <div class="kpis fade-in">
+                <div class="kpi">
+                    <div class="label">Total Leads</div>
+                    <div class="value" id="kLeads">0</div>
+                    <div class="hint" id="hLeads">—</div>
+                </div>
+                <div class="kpi">
+                    <div class="label">Negócios</div>
+                    <div class="value" id="kNeg">0</div>
+                </div>
+                <div class="kpi">
+                    <div class="label">Fechados</div>
+                    <div class="value" id="kFech">0</div>
+                </div>
+                <div class="kpi highlight">
+                    <div class="label">Valor Vendido</div>
+                    <div class="value" id="hValor">—</div>
+                    <div class="hint" id="kTaxa" style="font-size:13px;margin-top:6px;">Taxa: 0%</div>
+                </div>
+            </div>
+            <div class="card fade-in" style="margin-top:18px;">
+                <div class="hd">
+                    <h2>📊 Análise Visual</h2>
+                </div>
+                <div class="bd">
+                    <div class="charts">
+                        <div class="chartBox">
+                            <div class="chart-label">Funil de Vendas</div><canvas id="chFunil"></canvas>
+                        </div>
+                        <div class="chartBox" style="grid-column: span 2;">
+                            <div class="chart-label">Por Vendedor</div>
+                            <canvas id="chResp"></canvas>
+                        </div>
+                        <div class="chartBox">
+                            <div class="chart-label">Leads por Etapa</div><canvas id="chEtapa"></canvas>
+                        </div>
+                        <div class="chartBox">
+                            <div class="chart-label">Leads por Fonte</div><canvas id="chFonte"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card fade-in" style="margin-top:18px;">
+                <div class="hd">
+                    <h2>🏆 Ranking de Vendedores</h2>
+                </div>
+                <div class="bd">
+                    <div class="rank-tabs">
+                        <button class="rank-tab active" data-rank="vendas">💰 Total de Vendas</button>
+                        <button class="rank-tab" data-rank="fechados">🤝 Negócios Fechados</button>
+                        <button class="rank-tab" data-rank="taxa">📈 Taxa de Conversão</button>
+                        <button class="rank-tab" data-rank="fonte">🔍 Fechados por Fonte</button>
+                    </div>
+                    <div id="rankList" class="rank-list"></div>
+                </div>
+            </div>
+
+            <div class="card fade-in" style="margin-top:18px;">
+                <div class="hd">
+                    <h2>📋 Lista de Leads</h2>
+                </div>
+                <div class="bd">
+                    <div class="filter-bar">
+                        <label for="filtroVendedor">Filtrar por vendedor:</label>
+                        <select id="filtroVendedor" class="filter-select">
+                            <option value="">Todos os vendedores</option>
+                        </select>
+                        <span class="filter-count" id="filtroCount">—</span>
+                    </div>
+                    <div class="tableWrap">
+                        <table id="tbl">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Lead</th>
+                                    <th>Etapa</th>
+                                    <th>Fonte</th>
+                                    <th>Responsável</th>
+                                    <th>Data</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tblBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card fade-in" style="margin-top:18px; margin-bottom: 40px;">
+                <div class="hd">
+                    <h2>💼 Lista de Negócios</h2>
+                </div>
+                <div class="bd">
+                    <div class="filter-bar">
+                        <label for="filtroVendedorNeg">Filtrar por vendedor:</label>
+                        <select id="filtroVendedorNeg" class="filter-select">
+                            <option value="">Todos os vendedores</option>
+                        </select>
+                        <label for="filtroEtapaNeg" style="margin-left:8px;">Etapa:</label>
+                        <select id="filtroEtapaNeg" class="filter-select">
+                            <option value="">Todas as etapas</option>
+                        </select>
+                        <span class="filter-count" id="filtroCountNeg">—</span>
+                    </div>
+                    <div class="tableWrap">
+                        <table id="tblNeg">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Negócio</th>
+                                    <th>Etapa</th>
+                                    <th>Responsável</th>
+                                    <th>Data</th>
+                                    <th style="text-align:right;">Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tblNegBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        (function () {
+            // ============================================================
+            //  CONFIG
+            // ============================================================
+            var SPREADSHEET_ID = '1NdAqlHSqExbpk9eWvbqEhPF_YQUK3V8Gjk-njhJyRxo';
+
+            // ============================================================
+            //  JSONP loader (bypasses CORS for file:// and any origin)
+            // ============================================================
+            var jsonpCounter = 0;
+
+            function loadSheetJSONP(sheetName) {
+                return new Promise(function (resolve, reject) {
+                    var callbackName = '__sheetCb' + (jsonpCounter++);
+                    var url = 'https://docs.google.com/spreadsheets/d/' + SPREADSHEET_ID +
+                        '/gviz/tq?tqx=out:json;responseHandler:' + callbackName +
+                        '&sheet=' + encodeURIComponent(sheetName);
+
+                    var timeout = setTimeout(function () {
+                        cleanup();
+                        reject(new Error('Timeout ao carregar aba "' + sheetName + '"'));
+                    }, 15000);
+
+                    window[callbackName] = function (response) {
+                        clearTimeout(timeout);
+                        cleanup();
+                        if (response && response.table) {
+                            resolve(parseGvizTable(response.table));
+                        } else {
+                            reject(new Error('Resposta inválida da aba "' + sheetName + '"'));
+                        }
+                    };
+
+                    function cleanup() {
+                        try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
+                        var el = document.getElementById('script_' + callbackName);
+                        if (el) el.parentNode.removeChild(el);
+                    }
+
+                    var script = document.createElement('script');
+                    script.id = 'script_' + callbackName;
+                    script.src = url;
+                    script.onerror = function () {
+                        clearTimeout(timeout);
+                        cleanup();
+                        reject(new Error('Falha ao carregar aba "' + sheetName + '". Verifique se a planilha está compartilhada.'));
+                    };
+                    document.body.appendChild(script);
+                });
+            }
+
+            function parseGvizTable(table) {
+                var cols = table.cols || [];
+                var rows = table.rows || [];
+                var header = cols.map(function (c) { return c.label || c.id || ''; });
+                var data = rows.map(function (row) {
+                    return (row.c || []).map(function (cell) {
+                        if (!cell) return '';
+                        return cell.f || (cell.v != null ? String(cell.v) : '');
+                    });
+                });
+                return { header: header, rows: data };
+            }
+
+            // ============================================================
+            //  DOM
+            // ============================================================
+            var loadingEl = document.getElementById('loading');
+            var erroEl = document.getElementById('erro');
+            var conteudo = document.getElementById('conteudo');
+            var statusPill = document.getElementById('statusPill');
+            var statusText = document.getElementById('statusText');
+            var chFunil, chResp, chEtapa, chFonte;
+
+            function showErr(msg) {
+                loadingEl.style.display = 'none';
+                conteudo.style.display = 'none';
+                erroEl.innerHTML = '<div class="erro-box">' + msg + '</div>';
+                erroEl.style.display = 'block';
+                statusPill.className = 'status-pill err';
+                statusText.textContent = 'Erro';
+                document.querySelector('.dot').classList.remove('pulse');
+            }
+
+            function fmtNum(n) { return n == null ? '0' : Number(n).toLocaleString('pt-BR'); }
+            function fmtMoeda(n) {
+                if (n == null || isNaN(n)) return '—';
+                return 'R$ ' + Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            }
+
+            // ============================================================
+            //  Parse Brazilian currency "R$514.834,00" → 514834.00
+            // ============================================================
+            function parseMoedaBR(str) {
+                if (!str) return 0;
+                var s = String(str).replace(/R\$\s*/i, '').trim();
+                // Brazilian format: 514.834,00 → remove dots, replace comma with dot
+                s = s.replace(/\./g, '').replace(',', '.');
+                return parseFloat(s) || 0;
+            }
+
+            // ============================================================
+            //  Load all three sheets: Dados, Resumo, Dashboard
+            // ============================================================
+            Promise.all([
+                loadSheetJSONP('Dados'),
+                loadSheetJSONP('Resumo'),
+                loadSheetJSONP('Dashboard'),
+                loadSheetJSONP('DadosNegocios').catch(function () { return { header: [], rows: [] }; })
+            ])
+                .then(function (results) {
+                    var dadosResult = results[0];
+                    var resumoResult = results[1];
+                    var dashResult = results[2];
+                    var negociosResult = results[3];
+
+                    var dadosRows = dadosResult.rows;
+                    var resumoRows = resumoResult.rows;
+                    var dashRows = dashResult.rows;
+
+                    // Build leads
+                    var leads = dadosRows.map(function (row) {
+                        return {
+                            id: row[0] || '',
+                            lead: row[1] || '',
+                            etapa: row[2] || '',
+                            fonte: row[3] || '',
+                            responsavel: row[4] || '',
+                            data: row[5] || ''
+                        };
+                    });
+
+                    // Build negócios (aba DadosNegocios: ID, Negócio, Etapa, Responsável, Data, Valor, Fonte, Fechado)
+                    var negocios = (negociosResult.rows || []).map(function (row) {
+                        return {
+                            id:          row[0] || '',
+                            titulo:      row[1] || '',
+                            etapa:       row[2] || '',
+                            responsavel: row[3] || '',
+                            data:        row[4] || '',
+                            valor:       row[5] || '',
+                            fonte:       row[6] || '',
+                            fechado:     row[7] || ''
+                        };
+                    });
+
+                    // Build resumo + totals
+                    var resumoArr = [];
+                    var totais = { leads: 0, negocios: 0, fechados: 0, valorFechado: 0 };
+
+                    resumoRows.forEach(function (row) {
+                        var vendedor = (row[0] || '').trim();
+                        if (!vendedor) return;
+                        var l = parseFloat(String(row[1]).replace(/[^\d.-]/g, '')) || 0;
+                        var n = parseFloat(String(row[2]).replace(/[^\d.-]/g, '')) || 0;
+                        var f = parseFloat(String(row[3]).replace(/[^\d.-]/g, '')) || 0;
+                        var taxa = row[4] || '0%';
+                        resumoArr.push({ vendedor: vendedor, leads: l, negocios: n, fechados: f, taxa: taxa });
+                        totais.leads += l;
+                        totais.negocios += n;
+                        totais.fechados += f;
+                    });
+
+                    // Extract "Valor vendido" and period from the Dashboard sheet
+                    // Dashboard layout: A1=Filtro, A2=Resultado do mês X/YYYY, A3-A6=Totais
+                    var periodoMes = new Date().getMonth() + 1;
+                    var periodoAno = new Date().getFullYear();
+                    var periodoLabel = '';
+
+                    dashRows.forEach(function (row) {
+                        var colA = (row[0] || '').toString().trim().toLowerCase();
+                        var colB = (row[1] || '').toString().trim();
+
+                        // Extract period from "Resultado do mês 2/2026"
+                        if (colA.indexOf('resultado') >= 0) {
+                            periodoLabel = row[0] || '';
+                            var match = colA.match(/(\d{1,2})\/(\d{4})/);
+                            if (match) {
+                                periodoMes = parseInt(match[1], 10);
+                                periodoAno = parseInt(match[2], 10);
+                            }
+                        }
+
+                        // Extract valor vendido
+                        if (colA.indexOf('valor') >= 0 && colA.indexOf('vendido') >= 0) {
+                            totais.valorFechado = parseMoedaBR(colB);
+                        }
+                    });
+
+                    // Show dashboard
+                    loadingEl.style.display = 'none';
+                    erroEl.style.display = 'none';
+                    conteudo.style.display = 'block';
+                    statusPill.className = 'status-pill ok';
+                    statusText.textContent = leads.length + ' leads · Mês ' + periodoMes + '/' + periodoAno;
+                    document.querySelector('.dot').classList.remove('pulse');
+
+                    render({
+                        totais: totais,
+                        resumo: resumoArr,
+                        leads: leads,
+                        negocios: negocios,
+                        periodo: { mes: periodoMes, ano: periodoAno, label: periodoLabel }
+                    });
+                })
+                .catch(function (err) {
+                    showErr('❌ Não foi possível carregar os dados da planilha.<br><br>' +
+                        '<strong>Erro:</strong> ' + (err.message || String(err)) + '<br><br>' +
+                        '<strong>Verifique:</strong><br>' +
+                        '1. A planilha deve estar com "Qualquer pessoa com o link pode ver"<br>' +
+                        '2. O ID da planilha no código está correto: <code>' + SPREADSHEET_ID + '</code><br>' +
+                        '3. As abas "Dados", "Resumo" e "Dashboard" existem na planilha');
+                });
+
+            // ============================================================
+            //  Render
+            // ============================================================
+            function render(data) {
+                var t = data.totais || {};
+                var resumo = data.resumo || [];
+                var leads = data.leads || [];
+                var negocios = data.negocios || [];
+                var periodo = data.periodo || {};
+
+                document.getElementById('kLeads').textContent = fmtNum(t.leads);
+                document.getElementById('kNeg').textContent = fmtNum(t.negocios);
+                document.getElementById('kFech').textContent = fmtNum(t.fechados);
+                var taxa = (t.leads > 0 && t.fechados != null)
+                    ? (t.fechados / t.leads * 100).toFixed(1).replace('.', ',') + '%'
+                    : '0%';
+                document.getElementById('hValor').textContent = fmtMoeda(t.valorFechado);
+                document.getElementById('kTaxa').textContent = 'Taxa: ' + taxa;
+                document.getElementById('hLeads').textContent = leads.length + ' registros na aba Dados';
+
+                var opts = {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: 'rgba(231,236,255,.7)', font: { family: 'Inter' } }, grid: { color: 'rgba(255,255,255,.06)' } },
+                        y: { ticks: { color: 'rgba(231,236,255,.7)', font: { family: 'Inter' } }, grid: { color: 'rgba(255,255,255,.06)' } }
+                    }
+                };
+
+                chFunil = new Chart(document.getElementById('chFunil'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Leads', 'Negócios', 'Fechados'],
+                        datasets: [{ data: [t.leads || 0, t.negocios || 0, t.fechados || 0], backgroundColor: ['rgba(110,231,255,.85)', 'rgba(255,204,102,.85)', 'rgba(87,242,135,.85)'], borderRadius: 10, borderSkipped: false }]
+                    },
+                    options: Object.assign({ indexAxis: 'y' }, opts)
+                });
+
+                var SDR_EXCLUIDOS = ['João Pedro'];
+                var resumoVendedores = resumo.filter(function (r) {
+                    return SDR_EXCLUIDOS.indexOf(r.vendedor) === -1;
+                });
+
+                if (resumoVendedores.length > 0) {
+                    chResp = new Chart(document.getElementById('chResp'), {
+                        type: 'bar',
+                        plugins: [ChartDataLabels],
+                        data: {
+                            labels: resumoVendedores.map(function (r) { return r.vendedor; }),
+                            datasets: [
+                                { label: 'Leads',    data: resumoVendedores.map(function (r) { return r.leads; }),    backgroundColor: 'rgba(110,231,255,.8)', borderRadius: 6 },
+                                { label: 'Negócios', data: resumoVendedores.map(function (r) { return r.negocios; }), backgroundColor: 'rgba(255,204,102,.8)', borderRadius: 6 },
+                                { label: 'Fechados', data: resumoVendedores.map(function (r) { return r.fechados; }), backgroundColor: 'rgba(87,242,135,.8)',  borderRadius: 6 }
+                            ]
+                        },
+                        options: Object.assign({}, opts, {
+                            plugins: {
+                                legend: { display: true, labels: { color: 'rgba(231,236,255,.8)', font: { family: 'Inter' } } },
+                                datalabels: {
+                                    color: '#fff',
+                                    font: { family: 'Inter', size: 11, weight: '600' },
+                                    anchor: 'end',
+                                    align: 'top',
+                                    formatter: function (v) { return v > 0 ? v : ''; }
+                                }
+                            },
+                            layout: { padding: { top: 20 } },
+                            scales: {
+                                x: { ticks: { color: 'rgba(231,236,255,.7)', font: { family: 'Inter', size: 11 }, maxRotation: 30 }, grid: { color: 'rgba(255,255,255,.06)' } },
+                                y: { ticks: { color: 'rgba(231,236,255,.7)', font: { family: 'Inter' } }, grid: { color: 'rgba(255,255,255,.06)' }, beginAtZero: true }
+                            }
+                        })
+                    });
+                }
+
+                var byEtapa = {};
+                leads.forEach(function (l) { var k = (l.etapa || 'Outros').trim() || 'Outros'; byEtapa[k] = (byEtapa[k] || 0) + 1; });
+                var etapaSorted = Object.keys(byEtapa).sort(function (a, b) { return byEtapa[b] - byEtapa[a]; });
+                var MAX_ETAPAS = 8;
+                var etapaLabels, etapaData;
+                if (etapaSorted.length <= MAX_ETAPAS) {
+                    etapaLabels = etapaSorted;
+                    etapaData = etapaLabels.map(function (k) { return byEtapa[k]; });
+                } else {
+                    etapaLabels = etapaSorted.slice(0, MAX_ETAPAS);
+                    etapaData = etapaLabels.map(function (k) { return byEtapa[k]; });
+                    var outros = etapaSorted.slice(MAX_ETAPAS).reduce(function (sum, k) { return sum + byEtapa[k]; }, 0);
+                    etapaLabels.push('Outros (' + etapaSorted.slice(MAX_ETAPAS).length + ' etapas)');
+                    etapaData.push(outros);
+                }
+                if (!etapaLabels.length) { etapaLabels = ['Sem dados']; etapaData = [0]; }
+                chEtapa = new Chart(document.getElementById('chEtapa'), {
+                    type: 'doughnut',
+                    data: { labels: etapaLabels, datasets: [{ data: etapaData, backgroundColor: ['#6ee7ff', '#9b8cff', '#57f287', '#ffcc66', '#ff6b6b', '#a78bfa', '#34d399', '#fbbf24'], borderWidth: 0 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: 'rgba(231,236,255,.8)', font: { family: 'Inter' } } } } }
+                });
+
+                var byFonte = {};
+                leads.forEach(function (l) { var k = (l.fonte || 'Outros').trim() || 'Outros'; byFonte[k] = (byFonte[k] || 0) + 1; });
+                var fonteLabels = Object.keys(byFonte).sort(function (a, b) { return byFonte[b] - byFonte[a]; });
+                var fonteData = fonteLabels.map(function (k) { return byFonte[k]; });
+                if (!fonteLabels.length) { fonteLabels = ['Sem dados']; fonteData = [0]; }
+                chFonte = new Chart(document.getElementById('chFonte'), {
+                    type: 'doughnut',
+                    data: { labels: fonteLabels, datasets: [{ data: fonteData, backgroundColor: ['#6ee7ff', '#ffcc66', '#57f287', '#9b8cff', '#ff6b6b', '#a78bfa'], borderWidth: 0 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: 'rgba(231,236,255,.8)', font: { family: 'Inter' } } } } }
+                });
+
+                // ── Ranking de Vendedores ──────────────────────────────────
+                var SDR_RANKING = ['João Pedro'];
+                var FONTE_TP = 'Tráfego pago';
+                var FONTE_PP = 'Prospecção própria';
+
+                // Detecta se a planilha já tem a coluna Fechado (script re-executado)
+                var temColunaFechado = negocios.some(function(n) { return n.fechado === 'Sim' || n.fechado === 'Não'; });
+
+                function ehFechado(n) {
+                    if (temColunaFechado) return n.fechado === 'Sim';
+                    // Fallback: checa pelo nome da etapa (sheet antiga)
+                    return (n.etapa || '').trim() === 'Negócio Fechado';
+                }
+
+                // Build per-vendor stats from leads + negocios
+                var rankMap = {};
+
+                leads.forEach(function (l) {
+                    var v = (l.responsavel || '').trim();
+                    if (!v || SDR_RANKING.indexOf(v) !== -1) return;
+                    if (!rankMap[v]) rankMap[v] = { vendedor: v, leads: 0, fechados: 0, valorTotal: 0, fontes: {}, fontesLeads: {} };
+                    rankMap[v].leads++;
+                    var fLead = (l.fonte || '').trim();
+                    if (fLead === FONTE_TP || fLead === FONTE_PP) {
+                        rankMap[v].fontesLeads[fLead] = (rankMap[v].fontesLeads[fLead] || 0) + 1;
+                    }
+                });
+
+                negocios.forEach(function (n) {
+                    var v = (n.responsavel || '').trim();
+                    if (!v || SDR_RANKING.indexOf(v) !== -1) return;
+                    if (!rankMap[v]) rankMap[v] = { vendedor: v, leads: 0, fechados: 0, valorTotal: 0, fontes: {}, fontesLeads: {} };
+                    if (ehFechado(n)) {
+                        rankMap[v].fechados++;
+                        rankMap[v].valorTotal += parseMoedaBR(n.valor);
+                        var fNeg = (n.fonte || '').trim();
+                        if (fNeg === FONTE_TP || fNeg === FONTE_PP) {
+                            rankMap[v].fontes[fNeg] = (rankMap[v].fontes[fNeg] || 0) + 1;
+                        }
+                    }
+                });
+
+                // Decide se usa fonte dos negócios (pós script re-executado) ou dos leads (fallback)
+                var temFonteNegocios = temColunaFechado && Object.keys(rankMap).some(function(v) {
+                    return (rankMap[v].fontes[FONTE_TP] || 0) + (rankMap[v].fontes[FONTE_PP] || 0) > 0;
+                });
+
+                var rankData = Object.keys(rankMap).map(function (v) {
+                    var r = rankMap[v];
+                    var taxa = r.leads > 0 ? (r.fechados / r.leads * 100) : 0;
+                    // Usa fontes de negócios se disponível, senão usa leads como fallback
+                    var fontesExibir = temFonteNegocios ? r.fontes : r.fontesLeads;
+                    return { vendedor: r.vendedor, leads: r.leads, fechados: r.fechados, valorTotal: r.valorTotal, taxa: taxa, fontes: fontesExibir };
+                });
+
+                var rankMode = 'vendas';
+
+                function rankBadge(pos) {
+                    if (pos === 0) return '<div class="rank-badge gold">🥇</div>';
+                    if (pos === 1) return '<div class="rank-badge silver">🥈</div>';
+                    if (pos === 2) return '<div class="rank-badge bronze">🥉</div>';
+                    return '<div class="rank-badge other">' + (pos + 1) + '</div>';
+                }
+
+                function renderRanking(mode) {
+                    rankMode = mode;
+                    var list = rankData.slice();
+                    var rankEl = document.getElementById('rankList');
+
+                    if (mode === 'fonte') {
+                        list.sort(function (a, b) { return b.fechados - a.fechados; });
+                        var maxTP = Math.max.apply(null, list.map(function(r){ return r.fontes[FONTE_TP] || 0; })) || 1;
+                        var maxPP = Math.max.apply(null, list.map(function(r){ return r.fontes[FONTE_PP] || 0; })) || 1;
+                        var labelMetric = temFonteNegocios ? 'negócios fechados' : 'leads';
+                        var html = !temFonteNegocios
+                            ? '<p style="font-size:11px;color:var(--warn);margin-bottom:12px;padding:8px 12px;background:rgba(255,204,102,.07);border-radius:8px;border:1px solid rgba(255,204,102,.2);">⚠️ Exibindo <strong>leads por fonte</strong>. Para ver negócios fechados por fonte, re-execute o script no Google Apps Script.</p>'
+                            : '';
+                        list.forEach(function (r, i) {
+                            var tp = r.fontes[FONTE_TP] || 0;
+                            var pp = r.fontes[FONTE_PP] || 0;
+                            html += '<div class="rank-row" style="grid-template-columns: 48px 1fr auto auto;">' +
+                                rankBadge(i) +
+                                '<div class="rank-info">' +
+                                    '<div class="rank-name">' + r.vendedor + '</div>' +
+                                    '<div class="rank-meta" style="margin-top:6px;display:flex;gap:16px;">' +
+                                        '<span>' +
+                                            '<span style="color:var(--brand);font-weight:700;">Tráfego Pago</span><br>' +
+                                            '<div class="rank-bar-wrap" style="width:120px;margin-top:4px;"><div class="rank-bar" style="width:' + (tp/maxTP*100).toFixed(0) + '%;background:linear-gradient(90deg,#6ee7ff,#9b8cff);"></div></div>' +
+                                        '</span>' +
+                                        '<span>' +
+                                            '<span style="color:var(--warn);font-weight:700;">Prospecção Própria</span><br>' +
+                                            '<div class="rank-bar-wrap" style="width:120px;margin-top:4px;"><div class="rank-bar" style="width:' + (pp/maxPP*100).toFixed(0) + '%;background:linear-gradient(90deg,#ffcc66,#ff6b6b);"></div></div>' +
+                                        '</span>' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="rank-value" style="text-align:center;min-width:54px;">' + tp + '<small>T. Pago</small></div>' +
+                                '<div class="rank-value" style="text-align:center;min-width:54px;background:linear-gradient(135deg,var(--warn),#ff6b6b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">' + pp + '<small style="-webkit-text-fill-color:var(--muted);">Prosp.</small></div>' +
+                            '</div>';
+                        });
+                        rankEl.innerHTML = html || '<p style="color:var(--muted);text-align:center;padding:2rem;">Sem dados</p>';
+                        return;
+                    }
+
+                    var maxVal;
+                    if (mode === 'vendas') {
+                        list.sort(function (a, b) { return b.valorTotal - a.valorTotal; });
+                        maxVal = list[0] ? list[0].valorTotal : 1;
+                    } else if (mode === 'fechados') {
+                        list.sort(function (a, b) { return b.fechados - a.fechados; });
+                        maxVal = list[0] ? list[0].fechados : 1;
+                    } else {
+                        list.sort(function (a, b) { return b.taxa - a.taxa; });
+                        maxVal = list[0] ? list[0].taxa : 1;
+                    }
+
+                    var html = '';
+                    list.forEach(function (r, i) {
+                        var displayVal, barPct, metaStr;
+                        if (mode === 'vendas') {
+                            displayVal = fmtMoeda(r.valorTotal);
+                            barPct = maxVal > 0 ? (r.valorTotal / maxVal * 100).toFixed(1) : 0;
+                            metaStr = r.fechados + ' fechado(s) · ' + r.leads + ' leads';
+                        } else if (mode === 'fechados') {
+                            displayVal = r.fechados;
+                            barPct = maxVal > 0 ? (r.fechados / maxVal * 100).toFixed(1) : 0;
+                            metaStr = fmtMoeda(r.valorTotal) + ' · ' + r.leads + ' leads';
+                        } else {
+                            displayVal = r.taxa.toFixed(1).replace('.', ',') + '%';
+                            barPct = maxVal > 0 ? (r.taxa / maxVal * 100).toFixed(1) : 0;
+                            metaStr = r.fechados + ' fechado(s) de ' + r.leads + ' leads';
+                        }
+                        html += '<div class="rank-row">' +
+                            rankBadge(i) +
+                            '<div class="rank-info">' +
+                                '<div class="rank-name">' + r.vendedor + '</div>' +
+                                '<div class="rank-meta">' + metaStr + '</div>' +
+                                '<div class="rank-bar-wrap"><div class="rank-bar" style="width:' + barPct + '%"></div></div>' +
+                            '</div>' +
+                            '<div class="rank-value">' + displayVal + '</div>' +
+                        '</div>';
+                    });
+
+                    rankEl.innerHTML = html || '<p style="color:var(--muted);text-align:center;padding:2rem;">Sem dados de vendedores</p>';
+                }
+
+                document.querySelectorAll('.rank-tab').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        document.querySelectorAll('.rank-tab').forEach(function (b) { b.classList.remove('active'); });
+                        btn.classList.add('active');
+                        renderRanking(btn.dataset.rank);
+                    });
+                });
+
+                renderRanking('vendas');
+
+                // Vendor filter
+                var allLeads = leads; // store reference for filtering
+                var vendedores = {};
+                leads.forEach(function (l) { if (l.responsavel) vendedores[l.responsavel] = true; });
+                var vendedorSelect = document.getElementById('filtroVendedor');
+                vendedorSelect.innerHTML = '<option value="">Todos os vendedores</option>';
+                Object.keys(vendedores).sort().forEach(function (v) {
+                    var opt = document.createElement('option');
+                    opt.value = v;
+                    opt.textContent = v;
+                    vendedorSelect.appendChild(opt);
+                });
+
+                function renderTable(filteredLeads) {
+                    var tb = document.getElementById('tblBody');
+                    document.getElementById('filtroCount').textContent = filteredLeads.length + ' de ' + allLeads.length + ' leads';
+                    tb.innerHTML = filteredLeads.length === 0
+                        ? '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:2rem;">Nenhum lead encontrado</td></tr>'
+                        : filteredLeads.map(function (l) {
+                            return '<tr><td>' + (l.id || '') + '</td><td>' + (l.lead || '') + '</td><td>' + (l.etapa || '') + '</td><td>' + (l.fonte || '') + '</td><td>' + (l.responsavel || '') + '</td><td>' + (l.data || '') + '</td></tr>';
+                        }).join('');
+                }
+
+                vendedorSelect.addEventListener('change', function () {
+                    var selected = this.value;
+                    renderTable(!selected ? allLeads : allLeads.filter(function (l) { return l.responsavel === selected; }));
+                });
+
+                renderTable(allLeads);
+
+                // ── Lista de Negócios ──────────────────────────────────────
+                var allNegocios = negocios;
+
+                // Populate vendedor filter
+                var vendedoresNeg = {};
+                negocios.forEach(function (n) { if (n.responsavel) vendedoresNeg[n.responsavel] = true; });
+                var vendedorNegSelect = document.getElementById('filtroVendedorNeg');
+                vendedorNegSelect.innerHTML = '<option value="">Todos os vendedores</option>';
+                Object.keys(vendedoresNeg).sort().forEach(function (v) {
+                    var opt = document.createElement('option');
+                    opt.value = v; opt.textContent = v;
+                    vendedorNegSelect.appendChild(opt);
+                });
+
+                // Populate etapa filter
+                var etapasNeg = {};
+                negocios.forEach(function (n) { if (n.etapa) etapasNeg[n.etapa] = true; });
+                var etapaNegSelect = document.getElementById('filtroEtapaNeg');
+                etapaNegSelect.innerHTML = '<option value="">Todas as etapas</option>';
+                Object.keys(etapasNeg).sort().forEach(function (e) {
+                    var opt = document.createElement('option');
+                    opt.value = e; opt.textContent = e;
+                    etapaNegSelect.appendChild(opt);
+                });
+
+                function renderTableNeg(filteredNegocios) {
+                    var tb = document.getElementById('tblNegBody');
+                    document.getElementById('filtroCountNeg').textContent = filteredNegocios.length + ' de ' + allNegocios.length + ' negócios';
+                    tb.innerHTML = filteredNegocios.length === 0
+                        ? '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:2rem;">Nenhum negócio encontrado</td></tr>'
+                        : filteredNegocios.map(function (n) {
+                            return '<tr><td>' + (n.id || '') + '</td><td>' + (n.titulo || '') + '</td><td>' + (n.etapa || '') + '</td><td>' + (n.responsavel || '') + '</td><td>' + (n.data || '') + '</td><td style="text-align:right;">' + (n.valor || '—') + '</td></tr>';
+                        }).join('');
+                }
+
+                function applyNegFilters() {
+                    var selVend = vendedorNegSelect.value;
+                    var selEtapa = etapaNegSelect.value;
+                    renderTableNeg(allNegocios.filter(function (n) {
+                        if (selVend && n.responsavel !== selVend) return false;
+                        if (selEtapa && n.etapa !== selEtapa) return false;
+                        return true;
+                    }));
+                }
+
+                vendedorNegSelect.addEventListener('change', applyNegFilters);
+                etapaNegSelect.addEventListener('change', applyNegFilters);
+
+                renderTableNeg(allNegocios);
+            }
+        })();
+    </script>
+</body>
+
+</html>
