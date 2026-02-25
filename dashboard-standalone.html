@@ -642,6 +642,23 @@
         }
         #_authBtn:hover { opacity: .88; }
         #_authErr { color: #ff6b6b; font-size: 12px; margin-top: 10px; display: none; }
+
+        /* ── Print / PDF ── */
+        @media print {
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            header { position: static !important; }
+            #btnExportPdf, .rank-tabs, .filter-bar, #_authWall { display: none !important; }
+            /* Oculta listas de leads e negócios */
+            #cardLeads, #cardNegocios { display: none !important; }
+            /* Ranking: mostra versão expandida, oculta interativa */
+            #rankPrintAll { display: flex !important; }
+            #rankList { display: none !important; }
+            .tableWrap { max-height: none !important; overflow: visible !important; }
+            canvas { height: 220px !important; }
+            .chartBox-scroll { overflow: visible !important; }
+            .chartBox-scroll canvas { min-width: 0 !important; width: 100% !important; }
+            .card { page-break-inside: avoid; }
+        }
     </style>
 </head>
 
@@ -692,9 +709,14 @@
                         <p class="subtitle">Confiance Energy — dados da planilha Google Sheets</p>
                     </div>
                 </div>
-                <div class="status-pill" id="statusPill">
-                    <span class="dot pulse"></span>
-                    <span id="statusText">Carregando…</span>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <button id="btnExportPdf" onclick="exportarPDF()" style="display:none;padding:8px 16px;border:1px solid rgba(110,231,255,.4);border-radius:10px;background:rgba(110,231,255,.1);color:#6ee7ff;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='rgba(110,231,255,.2)'" onmouseout="this.style.background='rgba(110,231,255,.1)'">
+                        🖨️ Exportar PDF
+                    </button>
+                    <div class="status-pill" id="statusPill">
+                        <span class="dot pulse"></span>
+                        <span id="statusText">Carregando…</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -762,10 +784,12 @@
                         <button class="rank-tab" data-rank="fonte">🔍 Fechados por Fonte</button>
                     </div>
                     <div id="rankList" class="rank-list"></div>
+                    <!-- Versão expandida para impressão (oculta na tela) -->
+                    <div id="rankPrintAll" style="display:none;flex-direction:column;gap:24px;"></div>
                 </div>
             </div>
 
-            <div class="card fade-in" style="margin-top:18px;">
+            <div id="cardLeads" class="card fade-in" style="margin-top:18px;">
                 <div class="hd">
                     <h2>📋 Lista de Leads</h2>
                 </div>
@@ -795,7 +819,7 @@
                 </div>
             </div>
 
-            <div class="card fade-in" style="margin-top:18px; margin-bottom: 40px;">
+            <div id="cardNegocios" class="card fade-in" style="margin-top:18px; margin-bottom: 40px;">
                 <div class="hd">
                     <h2>💼 Lista de Negócios</h2>
                 </div>
@@ -1396,8 +1420,30 @@
                 etapaNegSelect.addEventListener('change', applyNegFilters);
 
                 renderTableNeg(allNegocios);
+
+                // Mostra botão de exportar após carregar
+                document.getElementById('btnExportPdf').style.display = 'block';
+
+                // Preenche ranking expandido para impressão (todas as abas de uma vez)
+                var modos = ['vendas', 'fechados', 'taxa', 'fonte'];
+                var titulosModo = { vendas: '💰 Total de Vendas', fechados: '🤝 Negócios Fechados', taxa: '📈 Taxa de Conversão', fonte: '🔍 Fechados por Fonte' };
+                var printAll = document.getElementById('rankPrintAll');
+                modos.forEach(function(m) {
+                    renderRanking(m);
+                    var secao = document.createElement('div');
+                    secao.innerHTML = '<div style="font-size:13px;font-weight:700;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #ddd;">' + titulosModo[m] + '</div>' + document.getElementById('rankList').innerHTML;
+                    printAll.appendChild(secao);
+                });
+                // Restaura aba padrão
+                renderRanking('vendas');
+                document.querySelectorAll('.rank-tab').forEach(function(b) { b.classList.remove('active'); });
+                document.querySelector('[data-rank="vendas"]').classList.add('active');
             }
         })();
+
+        function exportarPDF() {
+            window.print();
+        }
     </script>
 </body>
 
