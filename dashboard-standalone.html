@@ -239,6 +239,55 @@
             .charts {
                 grid-template-columns: 1fr;
             }
+            .charts .chartBox[style*="span 2"] {
+                grid-column: span 1 !important;
+            }
+        }
+
+        /* Gráfico Por Vendedor — scroll horizontal */
+        .chartBox-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .chartBox-scroll canvas {
+            min-width: 560px;
+        }
+
+        @media (max-width: 640px) {
+            .wrap { padding: 12px 14px 20px; }
+
+            h1 { font-size: 14px; }
+            .subtitle { font-size: 11px; }
+
+            .kpi .value { font-size: 22px; }
+
+            canvas { height: 200px !important; }
+            .chartBox-scroll canvas { height: 260px !important; }
+
+            .filter-bar { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .filter-select { min-width: 0; width: 100%; }
+
+            .rank-tabs { gap: 6px; }
+            .rank-tab { padding: 6px 10px; font-size: 11px; }
+
+            .rank-row {
+                grid-template-columns: 40px 1fr auto !important;
+                gap: 10px;
+                padding: 12px 12px;
+            }
+            .rank-badge { width: 34px; height: 34px; font-size: 15px; }
+            .rank-name { font-size: 13px; }
+            .rank-value { font-size: 14px; }
+            .rank-meta { font-size: 10px; }
+
+            .rank-bar-wrap[style*="width:120px"] { width: 80px !important; }
+
+            thead th { font-size: 10px; padding: 10px 8px; }
+            tbody td { font-size: 12px; padding: 8px; }
+
+            .card .bd { padding: 12px; }
+            .card .hd { padding: 12px 12px 0; }
+            .card h2 { font-size: 13px; }
         }
 
         .chartBox {
@@ -688,7 +737,7 @@
                         <div class="chartBox">
                             <div class="chart-label">Funil de Vendas</div><canvas id="chFunil"></canvas>
                         </div>
-                        <div class="chartBox" style="grid-column: span 2;">
+                        <div class="chartBox chartBox-scroll" style="grid-column: span 2;">
                             <div class="chart-label">Por Vendedor</div>
                             <canvas id="chResp"></canvas>
                         </div>
@@ -1041,7 +1090,13 @@
                 });
 
                 if (resumoVendedores.length > 0) {
-                    chResp = new Chart(document.getElementById('chResp'), {
+                    var canvasResp = document.getElementById('chResp');
+                    // Largura mínima dinâmica: 90px por vendedor, mínimo 600px
+                    var minW = Math.max(600, resumoVendedores.length * 90);
+                    canvasResp.style.minWidth = minW + 'px';
+                    canvasResp.style.height = '300px';
+
+                    chResp = new Chart(canvasResp, {
                         type: 'bar',
                         plugins: [ChartDataLabels],
                         data: {
@@ -1052,9 +1107,11 @@
                                 { label: 'Fechados', data: resumoVendedores.map(function (r) { return r.fechados; }), backgroundColor: 'rgba(87,242,135,.8)',  borderRadius: 6 }
                             ]
                         },
-                        options: Object.assign({}, opts, {
+                        options: {
+                            responsive: false,
+                            maintainAspectRatio: false,
                             plugins: {
-                                legend: { display: true, labels: { color: 'rgba(231,236,255,.8)', font: { family: 'Inter' } } },
+                                legend: { display: true, labels: { color: 'rgba(231,236,255,.8)', font: { family: 'Inter', size: 12 } } },
                                 datalabels: {
                                     color: '#fff',
                                     font: { family: 'Inter', size: 11, weight: '600' },
@@ -1063,12 +1120,12 @@
                                     formatter: function (v) { return v > 0 ? v : ''; }
                                 }
                             },
-                            layout: { padding: { top: 20 } },
+                            layout: { padding: { top: 24 } },
                             scales: {
-                                x: { ticks: { color: 'rgba(231,236,255,.7)', font: { family: 'Inter', size: 11 }, maxRotation: 30 }, grid: { color: 'rgba(255,255,255,.06)' } },
+                                x: { ticks: { color: 'rgba(231,236,255,.7)', font: { family: 'Inter', size: 11 }, maxRotation: 25 }, grid: { color: 'rgba(255,255,255,.06)' } },
                                 y: { ticks: { color: 'rgba(231,236,255,.7)', font: { family: 'Inter' } }, grid: { color: 'rgba(255,255,255,.06)' }, beginAtZero: true }
                             }
-                        })
+                        }
                     });
                 }
 
