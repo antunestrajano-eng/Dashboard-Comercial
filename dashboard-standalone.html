@@ -554,10 +554,85 @@
             background: rgba(110,231,255,.06);
             color: var(--brand);
         }
+        /* ── Auth overlay ── */
+        #_authWall {
+            position: fixed; inset: 0; z-index: 9999;
+            background: radial-gradient(1200px 600px at 20% 0%, rgba(110,231,255,.16), transparent 60%),
+                radial-gradient(900px 500px at 80% 10%, rgba(155,140,255,.14), transparent 55%), #0b1020;
+            display: flex; align-items: center; justify-content: center;
+        }
+        #_authBox {
+            background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 20px;
+            padding: 40px 36px;
+            width: 100%; max-width: 360px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.5);
+            text-align: center;
+        }
+        #_authBox img { height: 48px; margin-bottom: 20px; }
+        #_authBox h2 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+        #_authBox p  { font-size: 12px; color: #aab3d6; margin-bottom: 24px; }
+        #_authInput {
+            width: 100%; padding: 12px 16px;
+            background: rgba(255,255,255,.06);
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 12px; color: #e7ecff;
+            font-family: 'Inter', sans-serif; font-size: 14px;
+            outline: none; margin-bottom: 12px;
+            transition: border-color .2s;
+        }
+        #_authInput:focus { border-color: #6ee7ff; }
+        #_authBtn {
+            width: 100%; padding: 12px;
+            background: linear-gradient(135deg, #6ee7ff, #9b8cff);
+            border: none; border-radius: 12px;
+            color: #0b1020; font-family: 'Inter', sans-serif;
+            font-size: 14px; font-weight: 700; cursor: pointer;
+            transition: opacity .2s;
+        }
+        #_authBtn:hover { opacity: .88; }
+        #_authErr { color: #ff6b6b; font-size: 12px; margin-top: 10px; display: none; }
     </style>
 </head>
 
 <body>
+    <div id="_authWall">
+        <div id="_authBox">
+            <img src="logo-confiance.png" alt="Confiance Energy" />
+            <h2>Dashboard Comercial</h2>
+            <p>Digite a senha para continuar</p>
+            <input id="_authInput" type="password" placeholder="Senha" autocomplete="off" />
+            <button id="_authBtn">Entrar</button>
+            <div id="_authErr">Senha incorreta. Tente novamente.</div>
+        </div>
+    </div>
+    <script>
+        (function() {
+            var _s = sessionStorage.getItem('_ca');
+            // verificação de sessão ativa
+            var _v = function(i) {
+                var _p = ['\x51\x32\x39', '\x75\x5a\x6d', '\x6c\x68\x62', '\x6d\x4e\x6c', '\x51\x44\x49', '\x32\x4d\x6a\x59\x3d'];
+                return i === atob(_p.join(''));
+            };
+            if (_s === '1') { document.getElementById('_authWall').style.display = 'none'; return; }
+            var _b = document.getElementById('_authBtn');
+            var _i = document.getElementById('_authInput');
+            var _e = document.getElementById('_authErr');
+            var _try = function() {
+                if (_v(_i.value)) {
+                    sessionStorage.setItem('_ca', '1');
+                    document.getElementById('_authWall').style.display = 'none';
+                } else {
+                    _e.style.display = 'block';
+                    _i.value = '';
+                    _i.focus();
+                }
+            };
+            _b.addEventListener('click', _try);
+            _i.addEventListener('keydown', function(e) { if (e.key === 'Enter') _try(); });
+        })();
+    </script>
     <header>
         <div class="wrap">
             <div class="header-row">
