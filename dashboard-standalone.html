@@ -664,60 +664,50 @@
             #conteudo { display: block !important; }
         }
         
-        /* ── Estilos para PDF (html2pdf.js) ── */
+        /* ── Estilos para PDF (html2canvas) — mantém tema escuro ── */
+        .pdf-mode body,
         .pdf-mode {
-            background: #ffffff !important;
+            /* mantém fundo escuro original */
         }
-        .pdf-mode body {
-            background: #ffffff !important;
-        }
-        .pdf-mode * {
-            color: #1a1a1a !important;
-        }
+        /* Garante que elementos com rgba quase-transparente fiquem sólidos */
         .pdf-mode .kpi {
-            background: #f5f5f5 !important;
-            border: 1px solid #ddd !important;
-        }
-        .pdf-mode .kpi .label {
-            color: #666 !important;
-        }
-        .pdf-mode .kpi .value {
-            background: linear-gradient(135deg, #1a1a1a, #0066cc) !important;
-            -webkit-background-clip: text !important;
-            -webkit-text-fill-color: transparent !important;
+            background: #1a2540 !important;
+            border: 1px solid rgba(255,255,255,.2) !important;
         }
         .pdf-mode .card {
-            background: #fafafa !important;
-            border: 1px solid #ddd !important;
+            background: #111a33 !important;
+            border: 1px solid rgba(255,255,255,.15) !important;
         }
         .pdf-mode .chartBox {
-            background: #ffffff !important;
-            border: 1px solid #ddd !important;
-        }
-        .pdf-mode .chart-label {
-            color: #333 !important;
-            font-weight: 700 !important;
+            background: #0d1628 !important;
+            border: 1px solid rgba(255,255,255,.15) !important;
         }
         .pdf-mode .rank-row {
-            background: #f9f9f9 !important;
-            border: 1px solid #e0e0e0 !important;
+            background: #1a2540 !important;
+            border: 1px solid rgba(255,255,255,.15) !important;
         }
-        .pdf-mode .rank-name {
-            color: #1a1a1a !important;
+        /* Corrige textos com -webkit-text-fill-color transparente */
+        .pdf-mode .kpi .value {
+            -webkit-text-fill-color: #6ee7ff !important;
+            color: #6ee7ff !important;
         }
-        .pdf-mode .rank-meta {
-            color: #666 !important;
+        .pdf-mode .kpi.highlight .value {
+            -webkit-text-fill-color: #57f287 !important;
+            color: #57f287 !important;
         }
         .pdf-mode .rank-value {
-            color: #0066cc !important;
-            -webkit-text-fill-color: #0066cc !important;
+            -webkit-text-fill-color: #6ee7ff !important;
+            color: #6ee7ff !important;
         }
         .pdf-mode .rank-value small {
-            color: #666 !important;
-            -webkit-text-fill-color: #666 !important;
+            -webkit-text-fill-color: #aab3d6 !important;
+            color: #aab3d6 !important;
         }
-        .pdf-mode h2 {
-            color: #1a1a1a !important;
+        .pdf-mode thead th {
+            background: #0d1628 !important;
+        }
+        .pdf-mode .tableWrap {
+            border: 1px solid rgba(255,255,255,.15) !important;
         }
     </style>
 </head>
@@ -1554,7 +1544,7 @@
                         scale: 2,
                         useCORS: true,
                         allowTaint: true,
-                        backgroundColor: '#ffffff',
+                        backgroundColor: '#0b1020',
                         logging: false
                     });
                     
@@ -1586,7 +1576,7 @@
                             sliceCanvas.width = canvas.width;
                             sliceCanvas.height = canvasSliceHeight;
                             var ctx = sliceCanvas.getContext('2d');
-                            ctx.fillStyle = '#ffffff';
+                            ctx.fillStyle = '#0b1020';
                             ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
                             ctx.drawImage(canvas, 0, -s * canvasSliceHeight);
                             
