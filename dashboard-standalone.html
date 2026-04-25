@@ -664,51 +664,103 @@
             #conteudo { display: block !important; }
         }
         
-        /* ── Estilos para PDF (html2canvas) — mantém tema escuro ── */
-        .pdf-mode body,
-        .pdf-mode {
-            /* mantém fundo escuro original */
+        /* ── Estilos para PDF (html2canvas) — tema escuro sólido e legível ── */
+
+        /* Fundo geral e body */
+        body.pdf-mode {
+            background: #0b1020 !important;
         }
-        /* Garante que elementos com rgba quase-transparente fiquem sólidos */
+
+        /* KPIs — fundo sólido escuro */
+        .pdf-mode .kpis { background: transparent !important; }
         .pdf-mode .kpi {
-            background: #1a2540 !important;
-            border: 1px solid rgba(255,255,255,.2) !important;
+            background: #1c2847 !important;
+            border: 1px solid #3a4d7a !important;
         }
+        .pdf-mode .kpi .label {
+            color: #8899cc !important;
+        }
+        .pdf-mode .kpi .hint {
+            color: #8899cc !important;
+        }
+        /* Corrige todos os textos com background-clip que ficam invisíveis */
+        .pdf-mode .kpi .value,
+        .pdf-mode .kpi.highlight .value {
+            background: none !important;
+            -webkit-background-clip: unset !important;
+            background-clip: unset !important;
+            -webkit-text-fill-color: unset !important;
+        }
+        .pdf-mode .kpi .value         { color: #6ee7ff !important; }
+        .pdf-mode .kpi.highlight .value { color: #57f287 !important; }
+
+        /* Cards */
         .pdf-mode .card {
             background: #111a33 !important;
-            border: 1px solid rgba(255,255,255,.15) !important;
+            border: 1px solid #2a3a60 !important;
+            box-shadow: none !important;
         }
+        .pdf-mode .card h2 { color: #e7ecff !important; }
+
+        /* ChartBox */
         .pdf-mode .chartBox {
             background: #0d1628 !important;
-            border: 1px solid rgba(255,255,255,.15) !important;
+            border: 1px solid #2a3a60 !important;
         }
+        .pdf-mode .chart-label { color: #8899cc !important; }
+
+        /* Ranking */
         .pdf-mode .rank-row {
-            background: #1a2540 !important;
-            border: 1px solid rgba(255,255,255,.15) !important;
+            background: #1c2847 !important;
+            border: 1px solid #2a3a60 !important;
         }
-        /* Corrige textos com -webkit-text-fill-color transparente */
-        .pdf-mode .kpi .value {
-            -webkit-text-fill-color: #6ee7ff !important;
-            color: #6ee7ff !important;
-        }
-        .pdf-mode .kpi.highlight .value {
-            -webkit-text-fill-color: #57f287 !important;
-            color: #57f287 !important;
-        }
+        .pdf-mode .rank-name  { color: #e7ecff !important; }
+        .pdf-mode .rank-meta  { color: #8899cc !important; }
         .pdf-mode .rank-value {
-            -webkit-text-fill-color: #6ee7ff !important;
+            background: none !important;
+            -webkit-background-clip: unset !important;
+            background-clip: unset !important;
+            -webkit-text-fill-color: unset !important;
             color: #6ee7ff !important;
         }
         .pdf-mode .rank-value small {
-            -webkit-text-fill-color: #aab3d6 !important;
-            color: #aab3d6 !important;
+            -webkit-text-fill-color: unset !important;
+            color: #8899cc !important;
         }
-        .pdf-mode thead th {
-            background: #0d1628 !important;
+        .pdf-mode .rank-bar { background: #6ee7ff !important; }
+        .pdf-mode .rank-bar-wrap { background: #2a3a60 !important; }
+        .pdf-mode .rank-badge.gold   { background: rgba(255,215,0,.25) !important;   color: #ffd700 !important; }
+        .pdf-mode .rank-badge.silver { background: rgba(192,192,192,.2) !important; color: #c0c0c0 !important; }
+        .pdf-mode .rank-badge.bronze { background: rgba(205,127,50,.2) !important;  color: #cd7f32 !important; }
+        .pdf-mode .rank-badge.other  { background: #1c2847 !important; color: #8899cc !important; }
+
+        /* Fonte chips */
+        .pdf-mode .fonte-chip { background: rgba(110,231,255,.12) !important; color: #6ee7ff !important; }
+        .pdf-mode .fonte-vendedor-name { color: #e7ecff !important; }
+
+        /* Tabelas */
+        .pdf-mode .tableWrap   { border: 1px solid #2a3a60 !important; max-height: none !important; overflow: visible !important; }
+        .pdf-mode thead th     { background: #0d1628 !important; color: #8899cc !important; border-bottom: 1px solid #2a3a60 !important; }
+        .pdf-mode tbody td     { color: #d0d8f0 !important; border-bottom: 1px solid rgba(255,255,255,.06) !important; }
+        .pdf-mode tbody tr:hover { background: rgba(110,231,255,.06) !important; }
+
+        /* Filtros / labels */
+        .pdf-mode .filter-bar  { display: none !important; }
+        .pdf-mode .filter-count { color: #8899cc !important; border-color: #2a3a60 !important; background: #111a33 !important; }
+
+        /* Header */
+        .pdf-mode header {
+            background: #0b1020 !important;
+            border-bottom: 1px solid #2a3a60 !important;
         }
-        .pdf-mode .tableWrap {
-            border: 1px solid rgba(255,255,255,.15) !important;
-        }
+        .pdf-mode h1 { color: #e7ecff !important; }
+        .pdf-mode .subtitle { color: #8899cc !important; }
+        .pdf-mode .status-pill { color: #8899cc !important; border-color: #2a3a60 !important; background: #111a33 !important; }
+        .pdf-mode .status-pill.ok { color: #57f287 !important; }
+
+        /* Botão e abas de ranking — ocultar */
+        .pdf-mode #btnExportPdf { display: none !important; }
+        .pdf-mode .rank-tabs    { display: none !important; }
     </style>
 </head>
 
@@ -1497,107 +1549,69 @@
             btn.disabled = true;
 
             var nomeArquivo = 'Comercial_Dashboard_' + new Date().toISOString().slice(0,10) + '.pdf';
-            
+
             // Ativa modo PDF
             document.body.classList.add('pdf-mode');
-            
-            // Aguarda CSS aplicar
-            await new Promise(function(r) { setTimeout(r, 600); });
-            
+
+            // Aguarda CSS e re-render dos charts
+            await new Promise(function(r) { setTimeout(r, 800); });
+
             try {
                 var { jsPDF } = window.jspdf;
-                var pdf = new jsPDF('p', 'mm', 'a4');
-                var pageWidth = 210;
-                var pageHeight = 297;
-                var margin = 10;
-                var contentWidth = pageWidth - (margin * 2);
-                var currentY = margin;
-                var primeiraPagina = true;
-                
-                // Seções a capturar separadamente (cada .card vira uma seção)
-                var conteudo = document.getElementById('conteudo');
-                var secoes = [];
-                
-                // KPIs (primeiro bloco)
-                var kpis = conteudo.querySelector('.kpis');
-                if (kpis) secoes.push(kpis);
-                
-                // Cards visíveis (não escondidos no modo PDF)
-                var cards = conteudo.querySelectorAll('.card');
-                cards.forEach(function(card) {
-                    // Pula cards ocultos no modo PDF (Lista de Leads e Negócios)
-                    if (card.id !== 'cardLeads' && card.id !== 'cardNegocios') {
-                        secoes.push(card);
-                    }
+
+                // Dimensões A4
+                var pageWidthMM  = 210;
+                var pageHeightMM = 297;
+                var marginMM     = 8;
+                var printWidthMM = pageWidthMM - marginMM * 2;
+
+                // Captura TODO o conteúdo de uma vez (header + conteudo)
+                var alvo = document.getElementById('conteudo');
+
+                var fullCanvas = await html2canvas(alvo, {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#0b1020',
+                    logging: false,
+                    windowWidth: alvo.scrollWidth,
+                    scrollX: 0,
+                    scrollY: -window.scrollY
                 });
-                // Adiciona Lista de Leads e Negócios também
-                var leads = document.getElementById('cardLeads');
-                var negs = document.getElementById('cardNegocios');
-                if (leads) secoes.push(leads);
-                if (negs) secoes.push(negs);
-                
-                for (var i = 0; i < secoes.length; i++) {
-                    var secao = secoes[i];
-                    
-                    // Captura a seção
-                    var canvas = await html2canvas(secao, {
-                        scale: 2,
-                        useCORS: true,
-                        allowTaint: true,
-                        backgroundColor: '#0b1020',
-                        logging: false
-                    });
-                    
-                    var imgWidth = contentWidth;
-                    var imgHeight = (canvas.height * imgWidth) / canvas.width;
-                    
-                    // Se não couber na página atual, vai pra próxima
-                    if (currentY + imgHeight > pageHeight - margin && !primeiraPagina) {
-                        pdf.addPage();
-                        currentY = margin;
-                    }
-                    
-                    // Se a seção for maior que a página inteira, divide em múltiplas páginas
-                    if (imgHeight > pageHeight - (margin * 2)) {
-                        // Seção muito grande - precisa fatiar
-                        var sliceHeight = pageHeight - (margin * 2);
-                        var totalSlices = Math.ceil(imgHeight / sliceHeight);
-                        var sourceY = 0;
-                        var canvasSliceHeight = canvas.height / totalSlices;
-                        
-                        for (var s = 0; s < totalSlices; s++) {
-                            if (s > 0 || !primeiraPagina) {
-                                if (s > 0) pdf.addPage();
-                                else if (currentY > margin) { pdf.addPage(); currentY = margin; }
-                            }
-                            
-                            // Cria canvas temporário para a fatia
-                            var sliceCanvas = document.createElement('canvas');
-                            sliceCanvas.width = canvas.width;
-                            sliceCanvas.height = canvasSliceHeight;
-                            var ctx = sliceCanvas.getContext('2d');
-                            ctx.fillStyle = '#0b1020';
-                            ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
-                            ctx.drawImage(canvas, 0, -s * canvasSliceHeight);
-                            
-                            var sliceData = sliceCanvas.toDataURL('image/jpeg', 0.95);
-                            var sliceImgHeight = (canvasSliceHeight * imgWidth) / canvas.width;
-                            
-                            pdf.addImage(sliceData, 'JPEG', margin, margin, imgWidth, sliceImgHeight, '', 'FAST');
-                            primeiraPagina = false;
-                        }
-                        currentY = margin + (imgHeight - (sliceHeight * (totalSlices - 1)));
-                    } else {
-                        // Seção cabe normalmente
-                        var imgData = canvas.toDataURL('image/jpeg', 0.95);
-                        pdf.addImage(imgData, 'JPEG', margin, currentY, imgWidth, imgHeight, '', 'FAST');
-                        currentY += imgHeight + 5; // espaço entre seções
-                        primeiraPagina = false;
-                    }
+
+                // Proporção px→mm
+                var pxPerMM = fullCanvas.width / printWidthMM;
+                var pageHeightPX = (pageHeightMM - marginMM * 2) * pxPerMM;
+
+                var pdf = new jsPDF('p', 'mm', 'a4');
+                var totalHeight = fullCanvas.height;
+                var offsetY = 0;
+                var pageNum = 0;
+
+                while (offsetY < totalHeight) {
+                    if (pageNum > 0) pdf.addPage();
+
+                    var sliceH = Math.min(pageHeightPX, totalHeight - offsetY);
+
+                    // Cria canvas da fatia
+                    var sliceCanvas = document.createElement('canvas');
+                    sliceCanvas.width  = fullCanvas.width;
+                    sliceCanvas.height = sliceH;
+                    var ctx = sliceCanvas.getContext('2d');
+                    ctx.fillStyle = '#0b1020';
+                    ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+                    ctx.drawImage(fullCanvas, 0, -offsetY);
+
+                    var sliceImgHeightMM = (sliceH / pxPerMM);
+                    var imgData = sliceCanvas.toDataURL('image/jpeg', 0.92);
+                    pdf.addImage(imgData, 'JPEG', marginMM, marginMM, printWidthMM, sliceImgHeightMM, '', 'FAST');
+
+                    offsetY += sliceH;
+                    pageNum++;
                 }
-                
+
                 pdf.save(nomeArquivo);
-                
+
                 document.body.classList.remove('pdf-mode');
                 btn.textContent = '🖨️ Exportar PDF';
                 btn.disabled = false;
