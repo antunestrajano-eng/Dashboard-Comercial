@@ -9,7 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
             --bg: #0b1020;
@@ -1500,69 +1501,125 @@
             }
         })();
 
-        function exportarPDF() {
+        async function exportarPDF() {
             var btn = document.getElementById('btnExportPdf');
             btn.textContent = '⏳ Gerando PDF…';
             btn.disabled = true;
 
             var nomeArquivo = 'Comercial_Dashboard_' + new Date().toISOString().slice(0,10) + '.pdf';
             
-            // Adiciona classe para modo PDF
+            // Ativa modo PDF
             document.body.classList.add('pdf-mode');
             
-            // Aguarda um pouco para o CSS aplicar
-            setTimeout(function() {
-                var elemento = document.getElementById('conteudo');
+            // Aguarda CSS aplicar
+            await new Promise(function(r) { setTimeout(r, 600); });
+            
+            try {
+                var { jsPDF } = window.jspdf;
+                var pdf = new jsPDF('p', 'mm', 'a4');
+                var pageWidth = 210;
+                var pageHeight = 297;
+                var margin = 10;
+                var contentWidth = pageWidth - (margin * 2);
+                var currentY = margin;
+                var primeiraPagina = true;
                 
-                // Configurações otimizadas
-                var opt = {
-                    margin: [8, 8, 8, 8],
-                    filename: nomeArquivo,
-                    image: { type: 'jpeg', quality: 0.95 },
-                    html2canvas: { 
-                        scale: 2, // Reduzido de 3 para 2 (melhor compatibilidade)
+                // Seções a capturar separadamente (cada .card vira uma seção)
+                var conteudo = document.getElementById('conteudo');
+                var secoes = [];
+                
+                // KPIs (primeiro bloco)
+                var kpis = conteudo.querySelector('.kpis');
+                if (kpis) secoes.push(kpis);
+                
+                // Cards visíveis (não escondidos no modo PDF)
+                var cards = conteudo.querySelectorAll('.card');
+                cards.forEach(function(card) {
+                    // Pula cards ocultos no modo PDF (Lista de Leads e Negócios)
+                    if (card.id !== 'cardLeads' && card.id !== 'cardNegocios') {
+                        secoes.push(card);
+                    }
+                });
+                // Adiciona Lista de Leads e Negócios também
+                var leads = document.getElementById('cardLeads');
+                var negs = document.getElementById('cardNegocios');
+                if (leads) secoes.push(leads);
+                if (negs) secoes.push(negs);
+                
+                for (var i = 0; i < secoes.length; i++) {
+                    var secao = secoes[i];
+                    
+                    // Captura a seção
+                    var canvas = await html2canvas(secao, {
+                        scale: 2,
                         useCORS: true,
                         allowTaint: true,
-                        letterRendering: true,
-                        scrollY: 0,
-                        scrollX: 0,
                         backgroundColor: '#ffffff',
-                        logging: false,
-                        onclone: function(clonedDoc) {
-                            // Força fundo branco no documento clonado
-                            clonedDoc.body.style.backgroundColor = '#ffffff';
-                            var conteudoClone = clonedDoc.getElementById('conteudo');
-                            if (conteudoClone) {
-                                conteudoClone.style.backgroundColor = '#ffffff';
-                            }
-                        }
-                    },
-                    jsPDF: { 
-                        unit: 'mm', 
-                        format: 'a4', 
-                        orientation: 'portrait',
-                        compress: true
-                    },
-                    pagebreak: { 
-                        mode: ['avoid-all', 'css', 'legacy'],
-                        before: '.card' // Evita quebra dentro dos cards
+                        logging: false
+                    });
+                    
+                    var imgWidth = contentWidth;
+                    var imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    
+                    // Se não couber na página atual, vai pra próxima
+                    if (currentY + imgHeight > pageHeight - margin && !primeiraPagina) {
+                        pdf.addPage();
+                        currentY = margin;
                     }
-                };
-
-                html2pdf().set(opt).from(elemento).save().then(function() {
-                    document.body.classList.remove('pdf-mode');
+                    
+                    // Se a seção for maior que a página inteira, divide em múltiplas páginas
+                    if (imgHeight > pageHeight - (margin * 2)) {
+                        // Seção muito grande - precisa fatiar
+                        var sliceHeight = pageHeight - (margin * 2);
+                        var totalSlices = Math.ceil(imgHeight / sliceHeight);
+                        var sourceY = 0;
+                        var canvasSliceHeight = canvas.height / totalSlices;
+                        
+                        for (var s = 0; s < totalSlices; s++) {
+                            if (s > 0 || !primeiraPagina) {
+                                if (s > 0) pdf.addPage();
+                                else if (currentY > margin) { pdf.addPage(); currentY = margin; }
+                            }
+                            
+                            // Cria canvas temporário para a fatia
+                            var sliceCanvas = document.createElement('canvas');
+                            sliceCanvas.width = canvas.width;
+                            sliceCanvas.height = canvasSliceHeight;
+                            var ctx = sliceCanvas.getContext('2d');
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+                            ctx.drawImage(canvas, 0, -s * canvasSliceHeight);
+                            
+                            var sliceData = sliceCanvas.toDataURL('image/jpeg', 0.95);
+                            var sliceImgHeight = (canvasSliceHeight * imgWidth) / canvas.width;
+                            
+                            pdf.addImage(sliceData, 'JPEG', margin, margin, imgWidth, sliceImgHeight, '', 'FAST');
+                            primeiraPagina = false;
+                        }
+                        currentY = margin + (imgHeight - (sliceHeight * (totalSlices - 1)));
+                    } else {
+                        // Seção cabe normalmente
+                        var imgData = canvas.toDataURL('image/jpeg', 0.95);
+                        pdf.addImage(imgData, 'JPEG', margin, currentY, imgWidth, imgHeight, '', 'FAST');
+                        currentY += imgHeight + 5; // espaço entre seções
+                        primeiraPagina = false;
+                    }
+                }
+                
+                pdf.save(nomeArquivo);
+                
+                document.body.classList.remove('pdf-mode');
+                btn.textContent = '🖨️ Exportar PDF';
+                btn.disabled = false;
+            } catch (error) {
+                console.error('Erro ao gerar PDF:', error);
+                document.body.classList.remove('pdf-mode');
+                btn.textContent = '❌ Erro - Tente novamente';
+                setTimeout(function() {
                     btn.textContent = '🖨️ Exportar PDF';
                     btn.disabled = false;
-                }).catch(function(error) {
-                    console.error('Erro ao gerar PDF:', error);
-                    document.body.classList.remove('pdf-mode');
-                    btn.textContent = '❌ Erro - Tente novamente';
-                    setTimeout(function() {
-                        btn.textContent = '🖨️ Exportar PDF';
-                        btn.disabled = false;
-                    }, 3000);
-                });
-            }, 500); // Delay para aplicar CSS
+                }, 3000);
+            }
         }
     </script>
 </body>
