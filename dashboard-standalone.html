@@ -1505,53 +1505,64 @@
             btn.textContent = '⏳ Gerando PDF…';
             btn.disabled = true;
 
-            // Pega o mês/ano para o nome do arquivo
             var nomeArquivo = 'Comercial_Dashboard_' + new Date().toISOString().slice(0,10) + '.pdf';
             
-            // Elemento a ser convertido
-            var elemento = document.getElementById('conteudo');
-            
-            // Adiciona classe para modo PDF (fundo branco, textos escuros)
+            // Adiciona classe para modo PDF
             document.body.classList.add('pdf-mode');
             
-            // Configurações do PDF com ALTA QUALIDADE
-            var opt = {
-                margin: [8, 8, 8, 8],
-                filename: nomeArquivo,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { 
-                    scale: 3, // AUMENTADO para melhor qualidade
-                    useCORS: true,
-                    letterRendering: true,
-                    scrollY: 0,
-                    scrollX: 0,
-                    backgroundColor: '#ffffff', // Fundo branco forçado
-                    logging: false
-                },
-                jsPDF: { 
-                    unit: 'mm', 
-                    format: 'a4', 
-                    orientation: 'portrait',
-                    compress: true
-                },
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-            };
+            // Aguarda um pouco para o CSS aplicar
+            setTimeout(function() {
+                var elemento = document.getElementById('conteudo');
+                
+                // Configurações otimizadas
+                var opt = {
+                    margin: [8, 8, 8, 8],
+                    filename: nomeArquivo,
+                    image: { type: 'jpeg', quality: 0.95 },
+                    html2canvas: { 
+                        scale: 2, // Reduzido de 3 para 2 (melhor compatibilidade)
+                        useCORS: true,
+                        allowTaint: true,
+                        letterRendering: true,
+                        scrollY: 0,
+                        scrollX: 0,
+                        backgroundColor: '#ffffff',
+                        logging: false,
+                        onclone: function(clonedDoc) {
+                            // Força fundo branco no documento clonado
+                            clonedDoc.body.style.backgroundColor = '#ffffff';
+                            var conteudoClone = clonedDoc.getElementById('conteudo');
+                            if (conteudoClone) {
+                                conteudoClone.style.backgroundColor = '#ffffff';
+                            }
+                        }
+                    },
+                    jsPDF: { 
+                        unit: 'mm', 
+                        format: 'a4', 
+                        orientation: 'portrait',
+                        compress: true
+                    },
+                    pagebreak: { 
+                        mode: ['avoid-all', 'css', 'legacy'],
+                        before: '.card' // Evita quebra dentro dos cards
+                    }
+                };
 
-            // Gera e baixa o PDF
-            html2pdf().set(opt).from(elemento).save().then(function() {
-                // Remove modo PDF
-                document.body.classList.remove('pdf-mode');
-                btn.textContent = '🖨️ Exportar PDF';
-                btn.disabled = false;
-            }).catch(function(error) {
-                console.error('Erro ao gerar PDF:', error);
-                document.body.classList.remove('pdf-mode');
-                btn.textContent = '❌ Erro';
-                setTimeout(function() {
+                html2pdf().set(opt).from(elemento).save().then(function() {
+                    document.body.classList.remove('pdf-mode');
                     btn.textContent = '🖨️ Exportar PDF';
                     btn.disabled = false;
-                }, 2000);
-            });
+                }).catch(function(error) {
+                    console.error('Erro ao gerar PDF:', error);
+                    document.body.classList.remove('pdf-mode');
+                    btn.textContent = '❌ Erro - Tente novamente';
+                    setTimeout(function() {
+                        btn.textContent = '🖨️ Exportar PDF';
+                        btn.disabled = false;
+                    }, 3000);
+                });
+            }, 500); // Delay para aplicar CSS
         }
     </script>
 </body>
