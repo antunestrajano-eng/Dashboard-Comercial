@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --bg: #0b1020;
@@ -1445,14 +1446,48 @@
 
         function exportarPDF() {
             var btn = document.getElementById('btnExportPdf');
-            btn.textContent = '⏳ Preparando…';
+            btn.textContent = '⏳ Gerando PDF…';
             btn.disabled = true;
-            // Aguarda gráficos e layout estabilizarem antes de imprimir
-            setTimeout(function() {
-                window.print();
+
+            // Pega o mês/ano dos KPIs para o nome do arquivo
+            var mes = document.getElementById('kLeads').parentElement.querySelector('.hint')?.textContent || '';
+            var nomeArquivo = 'Comercial_Dashboard_' + new Date().toISOString().slice(0,10) + '.pdf';
+            
+            // Elemento a ser convertido (todo o conteúdo)
+            var elemento = document.getElementById('conteudo');
+            
+            // Configurações do PDF
+            var opt = {
+                margin: [10, 10, 10, 10],
+                filename: nomeArquivo,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2,
+                    useCORS: true,
+                    letterRendering: true,
+                    scrollY: 0,
+                    scrollX: 0
+                },
+                jsPDF: { 
+                    unit: 'mm', 
+                    format: 'a4', 
+                    orientation: 'portrait' 
+                },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            // Gera e baixa o PDF
+            html2pdf().set(opt).from(elemento).save().then(function() {
                 btn.textContent = '🖨️ Exportar PDF';
                 btn.disabled = false;
-            }, 800);
+            }).catch(function(error) {
+                console.error('Erro ao gerar PDF:', error);
+                btn.textContent = '❌ Erro';
+                setTimeout(function() {
+                    btn.textContent = '🖨️ Exportar PDF';
+                    btn.disabled = false;
+                }, 2000);
+            });
         }
     </script>
 </body>
