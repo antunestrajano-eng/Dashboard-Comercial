@@ -1,17 +1,17 @@
  <!DOCTYPE html>
-
 <html lang="pt-BR">
+
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width,initial-scale=1" name="viewport"/>
-<title>Dashboard Comercial — Confiance Energy</title>
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&amp;display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Dashboard Comercial — Confiance Energy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
         :root {
             --bg: #0b1020;
             --panel: #111a33;
@@ -648,89 +648,102 @@
         /* ── Print / PDF ── */
         @media print {
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            body { background: #fff !important; color: #000 !important; }
-            header { position: static !important; background: #fff !important; border-bottom: 2px solid #000 !important; }
-            .logo { filter: none !important; }
-            h1, .subtitle { color: #000 !important; }
+            header { position: static !important; }
             #btnExportPdf, .rank-tabs, .filter-bar, #_authWall { display: none !important; }
+            /* Oculta listas de leads e negócios */
             #cardLeads, #cardNegocios { display: none !important; }
-            #rankPrintAll { display: flex !important; flex-direction: column; gap: 20px; }
+            /* Ranking: mostra versão expandida, oculta interativa */
+            #rankPrintAll { display: flex !important; }
             #rankList { display: none !important; }
             .tableWrap { max-height: none !important; overflow: visible !important; }
-            canvas { height: 280px !important; max-width: 100% !important; }
+            canvas { height: 220px !important; }
             .chartBox-scroll { overflow: visible !important; }
             .chartBox-scroll canvas { min-width: 0 !important; width: 100% !important; }
-            .card { page-break-inside: avoid; background: #fff !important; border: 1px solid #ccc !important; color: #000 !important; box-shadow: none !important; }
-            .kpi { background: #f8f9fa !important; border: 1px solid #ddd !important; color: #000 !important; box-shadow: none !important; }
-            .kpi .value { color: #000 !important; -webkit-text-fill-color: #000 !important; background: none !important; }
-            .kpi .label, .kpi .hint { color: #444 !important; }
-            .chartBox { background: #fff !important; border: 1px solid #eee !important; }
-            .chart-label { color: #000 !important; }
-            .wrap { padding: 0 !important; max-width: 100% !important; }
+            .card { page-break-inside: avoid; }
+            .wrap { padding: 12px !important; }
             #conteudo { display: block !important; }
         }
         
-        /* ── Estilos para PDF (jsPDF + html2canvas) ── */
-        .pdf-mode { background: #ffffff !important; }
-        .pdf-mode body { background: #ffffff !important; color: #1a1a1a !important; }
-        .pdf-mode header { background: #ffffff !important; border-bottom: 1px solid #ddd !important; }
-        .pdf-mode .logo { filter: none !important; }
-        .pdf-mode h1 { color: #1a1a1a !important; }
-        .pdf-mode .subtitle { color: #666 !important; }
-        .pdf-mode * { color: #1a1a1a !important; text-shadow: none !important; }
-        .pdf-mode .kpi { background: #fdfdfd !important; border: 1px solid #e0e0e0 !important; box-shadow: none !important; transform: none !important; }
-        .pdf-mode .kpi .label { color: #666 !important; }
-        .pdf-mode .kpi .value { color: #0056b3 !important; -webkit-text-fill-color: #0056b3 !important; background: none !important; -webkit-background-clip: unset !important; background-clip: unset !important; }
-        .pdf-mode .kpi.highlight .value { color: #198754 !important; -webkit-text-fill-color: #198754 !important; }
-        .pdf-mode .kpi .hint { color: #888 !important; }
-        .pdf-mode .card { background: #ffffff !important; border: 1px solid #e0e0e0 !important; box-shadow: none !important; }
-        .pdf-mode .chartBox { background: #ffffff !important; border: 1px solid #f0f0f0 !important; }
-        .pdf-mode .chart-label { color: #333 !important; font-weight: 700 !important; }
-        .pdf-mode .rank-row { background: #ffffff !important; border-bottom: 1px solid #eee !important; }
-        .pdf-mode .rank-name { color: #1a1a1a !important; }
-        .pdf-mode .rank-meta { color: #777 !important; }
-        .pdf-mode .rank-value { color: #0056b3 !important; -webkit-text-fill-color: #0056b3 !important; background: none !important; -webkit-background-clip: unset !important; background-clip: unset !important; }
-        .pdf-mode .rank-value small { color: #888 !important; -webkit-text-fill-color: #888 !important; }
-        .pdf-mode h2 { color: #1a1a1a !important; }
-        .pdf-mode thead th { color: #444 !important; background: #f8f9fa !important; border-bottom: 1px solid #ddd !important; }
-        .pdf-mode tbody td { color: #1a1a1a !important; border-bottom: 1px solid #eee !important; }
-        .pdf-mode .status-pill { background: #f8f9fa !important; border: 1px solid #ddd !important; color: #666 !important; }
-        .pdf-mode .status-pill.ok { color: #198754 !important; border-color: #198754 !important; }
+        /* ── Estilos para PDF - MANTÉM TEMA ESCURO ORIGINAL ── */
+        .pdf-mode body {
+            background: #0b1020 !important;
+        }
+        /* Faz cores ficarem sólidas para o html2canvas renderizar direito */
+        .pdf-mode .kpi {
+            background: #1c2847 !important;
+            border: 1px solid #3d5580 !important;
+        }
+        .pdf-mode .kpi .label {
+            color: #8899cc !important;
+        }
+        .pdf-mode .kpi .value {
+            color: #6ee7ff !important;
+            -webkit-text-fill-color: #6ee7ff !important;
+            background: none !important;
+            -webkit-background-clip: unset !important;
+            background-clip: unset !important;
+        }
+        .pdf-mode .kpi.highlight .value {
+            color: #57f287 !important;
+            -webkit-text-fill-color: #57f287 !important;
+        }
+        .pdf-mode .card {
+            background: #111a33 !important;
+            border: 1px solid #2a3a60 !important;
+        }
+        .pdf-mode .chartBox {
+            background: #0d1628 !important;
+            border: 1px solid #2a3a60 !important;
+        }
+        .pdf-mode .chart-label {
+            color: #8899cc !important;
+        }
+        .pdf-mode .rank-row {
+            background: #1c2847 !important;
+            border: 1px solid #3d5580 !important;
+        }
+        .pdf-mode .rank-name {
+            color: #e7ecff !important;
+        }
+        .pdf-mode .rank-meta {
+            color: #8899cc !important;
+        }
+        .pdf-mode .rank-value {
+            color: #6ee7ff !important;
+            -webkit-text-fill-color: #6ee7ff !important;
+            background: none !important;
+            -webkit-background-clip: unset !important;
+            background-clip: unset !important;
+        }
+        .pdf-mode .rank-value small {
+            color: #8899cc !important;
+            -webkit-text-fill-color: #8899cc !important;
+        }
+        .pdf-mode h2 {
+            color: #e7ecff !important;
+        }
+        .pdf-mode thead th {
+            color: #8899cc !important;
+            background: #0d1628 !important;
+        }
+        .pdf-mode tbody td {
+            color: #d0d8f0 !important;
+        }
     </style>
-<style>
-@media print {
-  :root {
-    --bg: #ffffff !important;
-    --panel: #ffffff !important;
-    --text: #000000 !important;
-    --muted: #333333 !important;
-  }
-  body {
-    background: #ffffff !important;
-    color: #000000 !important;
-  }
-  * {
-    opacity: 1 !important;
-    color: #000000 !important;
-    text-shadow: none !important;
-  }
-  canvas {
-    filter: contrast(1.3) brightness(0.95);
-  }
-}
-</style></head>
+</head>
+
 <body>
-<div id="_authWall">
-<div id="_authBox">
-<img alt="Confiance Energy" src="logo-confiance.png"/>
-<h2>Dashboard Comercial</h2>
-<p>Digite a senha para continuar</p>
-<input autocomplete="off" id="_authInput" placeholder="Senha" type="password"/>
-<button id="_authBtn">Entrar</button>
-<div id="_authErr">Senha incorreta. Tente novamente.</div>
-</div>
-</div>
-<script>
+    <div id="_authWall">
+        <div id="_authBox">
+            <img src="logo-confiance.png" alt="Confiance Energy" />
+            <h2>Dashboard Comercial</h2>
+            <p>Digite a senha para continuar</p>
+            <input id="_authInput" type="password" placeholder="Senha" autocomplete="off" />
+            <button id="_authBtn">Entrar</button>
+            <div id="_authErr">Senha incorreta. Tente novamente.</div>
+        </div>
+    </div>
+    <script>
         (function() {
             var _s = sessionStorage.getItem('_ca');
             // verificação de sessão ativa
@@ -756,158 +769,163 @@
             _i.addEventListener('keydown', function(e) { if (e.key === 'Enter') _try(); });
         })();
     </script>
-<header>
-<div class="wrap">
-<div class="header-row">
-<div class="brand">
-<img alt="Confiance Energy" class="logo" src="logo-confiance.png"/>
-<div>
-<h1>Dashboard Comercial</h1>
-<p class="subtitle">Confiance Energy — dados da planilha Google Sheets</p>
-</div>
-</div>
-<div style="display:flex;align-items:center;gap:10px;">
-<button id="btnExportPdf" onclick="exportarPDF()" onmouseout="this.style.background='rgba(110,231,255,.1)'" onmouseover="this.style.background='rgba(110,231,255,.2)'" style="display:none;padding:8px 16px;border:1px solid rgba(110,231,255,.4);border-radius:10px;background:rgba(110,231,255,.1);color:#6ee7ff;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;">
+    <header>
+        <div class="wrap">
+            <div class="header-row">
+                <div class="brand">
+                    <img class="logo" src="logo-confiance.png" alt="Confiance Energy" />
+                    <div>
+                        <h1>Dashboard Comercial</h1>
+                        <p class="subtitle">Confiance Energy — dados da planilha Google Sheets</p>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <button id="btnExportPdf" onclick="exportarPDF()" style="display:none;padding:8px 16px;border:1px solid rgba(110,231,255,.4);border-radius:10px;background:rgba(110,231,255,.1);color:#6ee7ff;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='rgba(110,231,255,.2)'" onmouseout="this.style.background='rgba(110,231,255,.1)'">
                         🖨️ Exportar PDF
                     </button>
-<div class="status-pill" id="statusPill">
-<span class="dot pulse"></span>
-<span id="statusText">Carregando…</span>
-</div>
-</div>
-</div>
-</div>
-</header>
-<main class="wrap">
-<div class="loading-screen" id="loading">
-<div class="spinner"></div>
-<p>Buscando dados da planilha…</p>
-</div>
-<div id="erro" style="display:none;"></div>
-<div id="conteudo" style="display:none;">
-<div class="kpis fade-in">
-<div class="kpi">
-<div class="label">Total Leads</div>
-<div class="value" id="kLeads">0</div>
-<div class="hint" id="hLeads">—</div>
-</div>
-<div class="kpi">
-<div class="label">Negócios</div>
-<div class="value" id="kNeg">0</div>
-</div>
-<div class="kpi">
-<div class="label">Fechados</div>
-<div class="value" id="kFech">0</div>
-</div>
-<div class="kpi highlight">
-<div class="label">Valor Vendido</div>
-<div class="value" id="hValor">—</div>
-<div class="hint" id="kTaxa" style="font-size:13px;margin-top:6px;">Taxa: 0%</div>
-</div>
-</div>
-<div class="card fade-in" style="margin-top:18px;">
-<div class="hd">
-<h2>📊 Análise Visual</h2>
-</div>
-<div class="bd">
-<div class="charts">
-<div class="chartBox">
-<div class="chart-label">Funil de Vendas</div><canvas id="chFunil"></canvas>
-</div>
-<div class="chartBox chartBox-scroll" style="grid-column: span 2;">
-<div class="chart-label">Por Vendedor</div>
-<canvas id="chResp"></canvas>
-</div>
-<div class="chartBox">
-<div class="chart-label">Leads por Etapa</div><canvas id="chEtapa"></canvas>
-</div>
-<div class="chartBox">
-<div class="chart-label">Leads por Fonte</div><canvas id="chFonte"></canvas>
-</div>
-</div>
-</div>
-</div>
-<div class="card fade-in" style="margin-top:18px;">
-<div class="hd">
-<h2>🏆 Ranking de Vendedores</h2>
-</div>
-<div class="bd">
-<div class="rank-tabs">
-<button class="rank-tab active" data-rank="vendas">💰 Total de Vendas</button>
-<button class="rank-tab" data-rank="fechados">🤝 Negócios Fechados</button>
-<button class="rank-tab" data-rank="taxa">📈 Taxa de Conversão</button>
-<button class="rank-tab" data-rank="fonte">🔍 Fechados por Fonte</button>
-</div>
-<div class="rank-list" id="rankList"></div>
-<!-- Versão expandida para impressão (oculta na tela) -->
-<div id="rankPrintAll" style="display:none;flex-direction:column;gap:24px;"></div>
-</div>
-</div>
-<div class="card fade-in" id="cardLeads" style="margin-top:18px;">
-<div class="hd">
-<h2>📋 Lista de Leads</h2>
-</div>
-<div class="bd">
-<div class="filter-bar">
-<label for="filtroVendedor">Filtrar por vendedor:</label>
-<select class="filter-select" id="filtroVendedor">
-<option value="">Todos os vendedores</option>
-</select>
-<span class="filter-count" id="filtroCount">—</span>
-</div>
-<div class="tableWrap">
-<table id="tbl">
-<thead>
-<tr>
-<th>ID</th>
-<th>Lead</th>
-<th>Etapa</th>
-<th>Fonte</th>
-<th>Responsável</th>
-<th>Data</th>
-</tr>
-</thead>
-<tbody id="tblBody"></tbody>
-</table>
-</div>
-</div>
-</div>
-<div class="card fade-in" id="cardNegocios" style="margin-top:18px; margin-bottom: 40px;">
-<div class="hd">
-<h2>💼 Lista de Negócios</h2>
-</div>
-<div class="bd">
-<div class="filter-bar">
-<label for="filtroVendedorNeg">Filtrar por vendedor:</label>
-<select class="filter-select" id="filtroVendedorNeg">
-<option value="">Todos os vendedores</option>
-</select>
-<label for="filtroEtapaNeg" style="margin-left:8px;">Etapa:</label>
-<select class="filter-select" id="filtroEtapaNeg">
-<option value="">Todas as etapas</option>
-</select>
-<span class="filter-count" id="filtroCountNeg">—</span>
-</div>
-<div class="tableWrap">
-<table id="tblNeg">
-<thead>
-<tr>
-<th>ID</th>
-<th>Negócio</th>
-<th>Etapa</th>
-<th>Responsável</th>
-<th>Data</th>
-<th style="text-align:right;">Valor</th>
-</tr>
-</thead>
-<tbody id="tblNegBody"></tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-</main>
-<script>
+                    <div class="status-pill" id="statusPill">
+                        <span class="dot pulse"></span>
+                        <span id="statusText">Carregando…</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="wrap">
+        <div id="loading" class="loading-screen">
+            <div class="spinner"></div>
+            <p>Buscando dados da planilha…</p>
+        </div>
+        <div id="erro" style="display:none;"></div>
+
+        <div id="conteudo" style="display:none;">
+            <div class="kpis fade-in">
+                <div class="kpi">
+                    <div class="label">Total Leads</div>
+                    <div class="value" id="kLeads">0</div>
+                    <div class="hint" id="hLeads">—</div>
+                </div>
+                <div class="kpi">
+                    <div class="label">Negócios</div>
+                    <div class="value" id="kNeg">0</div>
+                </div>
+                <div class="kpi">
+                    <div class="label">Fechados</div>
+                    <div class="value" id="kFech">0</div>
+                </div>
+                <div class="kpi highlight">
+                    <div class="label">Valor Vendido</div>
+                    <div class="value" id="hValor">—</div>
+                    <div class="hint" id="kTaxa" style="font-size:13px;margin-top:6px;">Taxa: 0%</div>
+                </div>
+            </div>
+            <div class="card fade-in" style="margin-top:18px;">
+                <div class="hd">
+                    <h2>📊 Análise Visual</h2>
+                </div>
+                <div class="bd">
+                    <div class="charts">
+                        <div class="chartBox">
+                            <div class="chart-label">Funil de Vendas</div><canvas id="chFunil"></canvas>
+                        </div>
+                        <div class="chartBox chartBox-scroll" style="grid-column: span 2;">
+                            <div class="chart-label">Por Vendedor</div>
+                            <canvas id="chResp"></canvas>
+                        </div>
+                        <div class="chartBox">
+                            <div class="chart-label">Leads por Etapa</div><canvas id="chEtapa"></canvas>
+                        </div>
+                        <div class="chartBox">
+                            <div class="chart-label">Leads por Fonte</div><canvas id="chFonte"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card fade-in" style="margin-top:18px;">
+                <div class="hd">
+                    <h2>🏆 Ranking de Vendedores</h2>
+                </div>
+                <div class="bd">
+                    <div class="rank-tabs">
+                        <button class="rank-tab active" data-rank="vendas">💰 Total de Vendas</button>
+                        <button class="rank-tab" data-rank="fechados">🤝 Negócios Fechados</button>
+                        <button class="rank-tab" data-rank="taxa">📈 Taxa de Conversão</button>
+                        <button class="rank-tab" data-rank="fonte">🔍 Fechados por Fonte</button>
+                    </div>
+                    <div id="rankList" class="rank-list"></div>
+                    <!-- Versão expandida para impressão (oculta na tela) -->
+                    <div id="rankPrintAll" style="display:none;flex-direction:column;gap:24px;"></div>
+                </div>
+            </div>
+
+            <div id="cardLeads" class="card fade-in" style="margin-top:18px;">
+                <div class="hd">
+                    <h2>📋 Lista de Leads</h2>
+                </div>
+                <div class="bd">
+                    <div class="filter-bar">
+                        <label for="filtroVendedor">Filtrar por vendedor:</label>
+                        <select id="filtroVendedor" class="filter-select">
+                            <option value="">Todos os vendedores</option>
+                        </select>
+                        <span class="filter-count" id="filtroCount">—</span>
+                    </div>
+                    <div class="tableWrap">
+                        <table id="tbl">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Lead</th>
+                                    <th>Etapa</th>
+                                    <th>Fonte</th>
+                                    <th>Responsável</th>
+                                    <th>Data</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tblBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="cardNegocios" class="card fade-in" style="margin-top:18px; margin-bottom: 40px;">
+                <div class="hd">
+                    <h2>💼 Lista de Negócios</h2>
+                </div>
+                <div class="bd">
+                    <div class="filter-bar">
+                        <label for="filtroVendedorNeg">Filtrar por vendedor:</label>
+                        <select id="filtroVendedorNeg" class="filter-select">
+                            <option value="">Todos os vendedores</option>
+                        </select>
+                        <label for="filtroEtapaNeg" style="margin-left:8px;">Etapa:</label>
+                        <select id="filtroEtapaNeg" class="filter-select">
+                            <option value="">Todas as etapas</option>
+                        </select>
+                        <span class="filter-count" id="filtroCountNeg">—</span>
+                    </div>
+                    <div class="tableWrap">
+                        <table id="tblNeg">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Negócio</th>
+                                    <th>Etapa</th>
+                                    <th>Responsável</th>
+                                    <th>Data</th>
+                                    <th style="text-align:right;">Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tblNegBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
         (function () {
             // ============================================================
             //  CONFIG
@@ -1543,18 +1561,11 @@
                     
                     // Captura a seção
                     var canvas = await html2canvas(secao, {
-                        scale: 3, // Aumentado para maior nitidez
+                        scale: 2,
                         useCORS: true,
                         allowTaint: true,
-                        backgroundColor: '#ffffff',
-                        logging: false,
-                        onclone: function(clonedDoc) {
-                            // Garante que elementos no clone estejam visíveis e com cores corretas
-                            var clonedSecao = clonedDoc.getElementById(secao.id) || clonedDoc.querySelector('.kpis');
-                            if (clonedSecao) {
-                                clonedSecao.style.display = 'grid';
-                            }
-                        }
+                        backgroundColor: '#0b1020',
+                        logging: false
                     });
                     
                     var imgWidth = contentWidth;
@@ -1585,7 +1596,7 @@
                             sliceCanvas.width = canvas.width;
                             sliceCanvas.height = canvasSliceHeight;
                             var ctx = sliceCanvas.getContext('2d');
-                            ctx.fillStyle = '#ffffff';
+                            ctx.fillStyle = '#0b1020';
                             ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
                             ctx.drawImage(canvas, 0, -s * canvasSliceHeight);
                             
@@ -1621,10 +1632,6 @@
             }
         }
     </script>
-<script>
-if (window.Chart) {
-  Chart.defaults.color = "#000";
-  Chart.defaults.borderColor = "#000";
-}
-</script></body>
+</body>
+
 </html>
