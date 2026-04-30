@@ -1426,7 +1426,7 @@
                     tb.innerHTML = filteredNegocios.length === 0
                         ? '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:2rem;">Nenhum negócio encontrado</td></tr>'
                         : filteredNegocios.map(function (n) {
-                            return '<tr><td>' + (n.id || '') + '</td><td>' + (n.titulo || '') + '</td><td>' + (n.etapa || '') + '</td><td>' + (n.responsavel || '') + '</td><td>' + (n.data || '') + '</td><td style="text-align:right;">' + (n.valor || '—') + '</td></tr>';
+                            return '<tr><td>' + (n.id || '') + '</td><td>' + (n.negocio || n.titulo || '') + '</td><td>' + (n.etapa || '') + '</td><td>' + (n.responsavel || '') + '</td><td>' + (n.data || '') + '</td><td style="text-align:right;">' + (n.valor || '—') + '</td></tr>';
                         }).join('');
                 }
 
