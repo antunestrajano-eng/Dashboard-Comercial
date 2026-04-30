@@ -780,9 +780,9 @@
                     </div>
                 </div>
                 <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                    <select id="selMes" style="padding:7px 10px;border:1px solid rgba(110,231,255,.3);border-radius:8px;background:rgba(110,231,255,.07);color:#e7ecff;font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;">
+                    <select id="selMes" style="padding:7px 10px;border:1px solid rgba(110,231,255,.3);border-radius:8px;background:#111a33;color:#e7ecff;font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;">
                     </select>
-                    <select id="selAno" style="padding:7px 10px;border:1px solid rgba(110,231,255,.3);border-radius:8px;background:rgba(110,231,255,.07);color:#e7ecff;font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;">
+                    <select id="selAno" style="padding:7px 10px;border:1px solid rgba(110,231,255,.3);border-radius:8px;background:#111a33;color:#e7ecff;font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;">
                     </select>
                     <button id="btnAtualizar" style="padding:7px 14px;border:1px solid rgba(110,231,255,.4);border-radius:8px;background:rgba(110,231,255,.1);color:#6ee7ff;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">
                         🔄 Atualizar
@@ -951,16 +951,35 @@
                 return { mes: mes, ano: ano };
             }
 
+            function destruirCharts() {
+                var charts = [
+                    ['chFunil', function(c){ chFunil = c; }],
+                    ['chResp',  function(c){ chResp  = c; }],
+                    ['chEtapa', function(c){ chEtapa = c; }],
+                    ['chFonte', function(c){ chFonte = c; }]
+                ];
+                charts.forEach(function(item) {
+                    var id = item[0], setter = item[1];
+                    var chart = id === 'chFunil' ? chFunil : id === 'chResp' ? chResp : id === 'chEtapa' ? chEtapa : chFonte;
+                    if (chart) { try { chart.destroy(); } catch(e){} setter(null); }
+                    // Recriar o canvas para evitar "Canvas already in use"
+                    var old = document.getElementById(id);
+                    if (old) {
+                        var novo = document.createElement('canvas');
+                        novo.id = id;
+                        if (old.style.cssText) novo.style.cssText = old.style.cssText;
+                        old.parentNode.replaceChild(novo, old);
+                    }
+                });
+            }
+
             function carregarDados() {
                 var ma = getMesAno();
                 var url = WORKER_URL + '/?mes=' + ma.mes + '&ano=' + ma.ano;
                 loadingEl.style.display = 'flex';
                 conteudo.style.display = 'none';
                 erroEl.style.display = 'none';
-                if (chFunil) { try { chFunil.destroy(); } catch(e){} chFunil = null; }
-                if (chResp)  { try { chResp.destroy();  } catch(e){} chResp  = null; }
-                if (chEtapa) { try { chEtapa.destroy(); } catch(e){} chEtapa = null; }
-                if (chFonte) { try { chFonte.destroy(); } catch(e){} chFonte = null; }
+                destruirCharts();
                 return fetch(url).then(function(r) { return r.json(); });
             }
 
@@ -972,7 +991,7 @@
             var conteudo = document.getElementById('conteudo');
             var statusPill = document.getElementById('statusPill');
             var statusText = document.getElementById('statusText');
-            var chFunil, chResp, chEtapa, chFonte;
+            var chFunil = null, chResp = null, chEtapa = null, chFonte = null;
 
             // Popular seletores de mês e ano
             (function() {
