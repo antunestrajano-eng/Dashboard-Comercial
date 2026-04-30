@@ -1064,11 +1064,6 @@
                         negocios: negocios,
                         periodo: { mes: periodoMes, ano: periodoAno, label: '' }
                     });
-                })
-                .catch(function (err) {
-                    showErr('❌ Não foi possível carregar os dados do Worker.<br><br>' +
-                        '<strong>Erro:</strong> ' + (err.message || String(err)));
-                });
             }
 
             // Carga inicial
