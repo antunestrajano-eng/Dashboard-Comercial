@@ -1100,6 +1100,8 @@
                 var leads = data.leads || [];
                 var negocios = data.negocios || [];
                 var periodo = data.periodo || {};
+                var periodoMes = periodo.mes || new Date().getMonth() + 1;
+                var periodoAno = periodo.ano || new Date().getFullYear();
 
                 document.getElementById('kLeads').textContent = fmtNum(t.leads);
                 document.getElementById('kNeg').textContent = fmtNum(t.negocios);
