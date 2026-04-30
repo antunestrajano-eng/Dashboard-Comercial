@@ -776,10 +776,17 @@
                     <img class="logo" src="logo-confiance.png" alt="Confiance Energy" />
                     <div>
                         <h1>Dashboard Comercial</h1>
-                        <p class="subtitle">Confiance Energy — dados da planilha Google Sheets</p>
+                        <p class="subtitle">Confiance Energy — dados em tempo real</p>
                     </div>
                 </div>
-                <div style="display:flex;align-items:center;gap:10px;">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <select id="selMes" style="padding:7px 10px;border:1px solid rgba(110,231,255,.3);border-radius:8px;background:rgba(110,231,255,.07);color:#e7ecff;font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;">
+                    </select>
+                    <select id="selAno" style="padding:7px 10px;border:1px solid rgba(110,231,255,.3);border-radius:8px;background:rgba(110,231,255,.07);color:#e7ecff;font-family:'Inter',sans-serif;font-size:12px;cursor:pointer;">
+                    </select>
+                    <button id="btnAtualizar" style="padding:7px 14px;border:1px solid rgba(110,231,255,.4);border-radius:8px;background:rgba(110,231,255,.1);color:#6ee7ff;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">
+                        🔄 Atualizar
+                    </button>
                     <button id="btnExportPdf" onclick="exportarPDF()" style="display:none;padding:8px 16px;border:1px solid rgba(110,231,255,.4);border-radius:10px;background:rgba(110,231,255,.1);color:#6ee7ff;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='rgba(110,231,255,.2)'" onmouseout="this.style.background='rgba(110,231,255,.1)'">
                         🖨️ Exportar PDF
                     </button>
@@ -881,6 +888,7 @@
                                     <th>Fonte</th>
                                     <th>Responsável</th>
                                     <th>Data</th>
+                                    <th>Conversa</th>
                                 </tr>
                             </thead>
                             <tbody id="tblBody"></tbody>
@@ -930,64 +938,30 @@
             // ============================================================
             //  CONFIG
             // ============================================================
-            var SPREADSHEET_ID = '1NdAqlHSqExbpk9eWvbqEhPF_YQUK3V8Gjk-njhJyRxo';
+            var WORKER_URL = 'https://renomearleads.antunestrajano.workers.dev';
 
             // ============================================================
-            //  JSONP loader (bypasses CORS for file:// and any origin)
+            //  Carregar dados do Worker
             // ============================================================
-            var jsonpCounter = 0;
-
-            function loadSheetJSONP(sheetName) {
-                return new Promise(function (resolve, reject) {
-                    var callbackName = '__sheetCb' + (jsonpCounter++);
-                    var url = 'https://docs.google.com/spreadsheets/d/' + SPREADSHEET_ID +
-                        '/gviz/tq?tqx=out:json;responseHandler:' + callbackName +
-                        '&sheet=' + encodeURIComponent(sheetName);
-
-                    var timeout = setTimeout(function () {
-                        cleanup();
-                        reject(new Error('Timeout ao carregar aba "' + sheetName + '"'));
-                    }, 15000);
-
-                    window[callbackName] = function (response) {
-                        clearTimeout(timeout);
-                        cleanup();
-                        if (response && response.table) {
-                            resolve(parseGvizTable(response.table));
-                        } else {
-                            reject(new Error('Resposta inválida da aba "' + sheetName + '"'));
-                        }
-                    };
-
-                    function cleanup() {
-                        try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
-                        var el = document.getElementById('script_' + callbackName);
-                        if (el) el.parentNode.removeChild(el);
-                    }
-
-                    var script = document.createElement('script');
-                    script.id = 'script_' + callbackName;
-                    script.src = url;
-                    script.onerror = function () {
-                        clearTimeout(timeout);
-                        cleanup();
-                        reject(new Error('Falha ao carregar aba "' + sheetName + '". Verifique se a planilha está compartilhada.'));
-                    };
-                    document.body.appendChild(script);
-                });
+            function getMesAno() {
+                var selMes = document.getElementById('selMes');
+                var selAno = document.getElementById('selAno');
+                var mes = selMes ? parseInt(selMes.value) : new Date().getMonth() + 1;
+                var ano = selAno ? parseInt(selAno.value) : new Date().getFullYear();
+                return { mes: mes, ano: ano };
             }
 
-            function parseGvizTable(table) {
-                var cols = table.cols || [];
-                var rows = table.rows || [];
-                var header = cols.map(function (c) { return c.label || c.id || ''; });
-                var data = rows.map(function (row) {
-                    return (row.c || []).map(function (cell) {
-                        if (!cell) return '';
-                        return cell.f || (cell.v != null ? String(cell.v) : '');
-                    });
-                });
-                return { header: header, rows: data };
+            function carregarDados() {
+                var ma = getMesAno();
+                var url = WORKER_URL + '/?mes=' + ma.mes + '&ano=' + ma.ano;
+                loadingEl.style.display = 'flex';
+                conteudo.style.display = 'none';
+                erroEl.style.display = 'none';
+                if (chFunil) { try { chFunil.destroy(); } catch(e){} chFunil = null; }
+                if (chResp)  { try { chResp.destroy();  } catch(e){} chResp  = null; }
+                if (chEtapa) { try { chEtapa.destroy(); } catch(e){} chEtapa = null; }
+                if (chFonte) { try { chFonte.destroy(); } catch(e){} chFonte = null; }
+                return fetch(url).then(function(r) { return r.json(); });
             }
 
             // ============================================================
@@ -999,6 +973,34 @@
             var statusPill = document.getElementById('statusPill');
             var statusText = document.getElementById('statusText');
             var chFunil, chResp, chEtapa, chFonte;
+
+            // Popular seletores de mês e ano
+            (function() {
+                var selMes = document.getElementById('selMes');
+                var selAno = document.getElementById('selAno');
+                var hoje = new Date();
+                var meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+                meses.forEach(function(m, i) {
+                    var opt = document.createElement('option');
+                    opt.value = i + 1;
+                    opt.textContent = m;
+                    if (i + 1 === hoje.getMonth() + 1) opt.selected = true;
+                    selMes.appendChild(opt);
+                });
+                var anoAtual = hoje.getFullYear();
+                for (var a = anoAtual; a >= anoAtual - 2; a--) {
+                    var opt = document.createElement('option');
+                    opt.value = a;
+                    opt.textContent = a;
+                    if (a === anoAtual) opt.selected = true;
+                    selAno.appendChild(opt);
+                }
+                document.getElementById('btnAtualizar').addEventListener('click', function() {
+                    carregarDados().then(processarDados).catch(function(err) {
+                        showErr('❌ Erro ao carregar dados.<br>' + (err.message || String(err)));
+                    });
+                });
+            })();
 
             function showErr(msg) {
                 loadingEl.style.display = 'none';
@@ -1030,90 +1032,22 @@
             // ============================================================
             //  Load all three sheets: Dados, Resumo, Dashboard
             // ============================================================
-            Promise.all([
-                loadSheetJSONP('Dados'),
-                loadSheetJSONP('Resumo'),
-                loadSheetJSONP('Dashboard'),
-                loadSheetJSONP('DadosNegocios').catch(function () { return { header: [], rows: [] }; })
-            ])
-                .then(function (results) {
-                    var dadosResult = results[0];
-                    var resumoResult = results[1];
-                    var dashResult = results[2];
-                    var negociosResult = results[3];
+            function processarDados(data) {
+                    var leads    = data.leads    || [];
+                    var negocios = data.negocios || [];
+                    var resumoArr = data.resumo  || [];
+                    var totais   = data.totais   || { leads: 0, negocios: 0, fechados: 0, valorFechado: 0 };
+                    var periodo  = data.periodo  || {};
+                    var periodoMes = periodo.mes || new Date().getMonth() + 1;
+                    var periodoAno = periodo.ano || new Date().getFullYear();
 
-                    var dadosRows = dadosResult.rows;
-                    var resumoRows = resumoResult.rows;
-                    var dashRows = dashResult.rows;
-
-                    // Build leads
-                    var leads = dadosRows.map(function (row) {
-                        return {
-                            id: row[0] || '',
-                            lead: row[1] || '',
-                            etapa: row[2] || '',
-                            fonte: row[3] || '',
-                            responsavel: row[4] || '',
-                            data: row[5] || ''
-                        };
-                    });
-
-                    // Build negócios (aba DadosNegocios: ID, Negócio, Etapa, Responsável, Data, Valor, Fonte, Fechado)
-                    var negocios = (negociosResult.rows || []).map(function (row) {
-                        return {
-                            id:          row[0] || '',
-                            titulo:      row[1] || '',
-                            etapa:       row[2] || '',
-                            responsavel: row[3] || '',
-                            data:        row[4] || '',
-                            valor:       row[5] || '',
-                            fonte:       row[6] || '',
-                            fechado:     row[7] || ''
-                        };
-                    });
-
-                    // Build resumo + totals
-                    var resumoArr = [];
-                    var totais = { leads: 0, negocios: 0, fechados: 0, valorFechado: 0 };
-
-                    resumoRows.forEach(function (row) {
-                        var vendedor = (row[0] || '').trim();
-                        if (!vendedor) return;
-                        var l = parseFloat(String(row[1]).replace(/[^\d.-]/g, '')) || 0;
-                        var n = parseFloat(String(row[2]).replace(/[^\d.-]/g, '')) || 0;
-                        var f = parseFloat(String(row[3]).replace(/[^\d.-]/g, '')) || 0;
-                        var taxa = row[4] || '0%';
-                        resumoArr.push({ vendedor: vendedor, leads: l, negocios: n, fechados: f, taxa: taxa });
-                        totais.leads += l;
-                        totais.negocios += n;
-                        totais.fechados += f;
-                    });
-
-                    // Extract "Valor vendido" and period from the Dashboard sheet
-                    // Dashboard layout: A1=Filtro, A2=Resultado do mês X/YYYY, A3-A6=Totais
-                    var periodoMes = new Date().getMonth() + 1;
-                    var periodoAno = new Date().getFullYear();
-                    var periodoLabel = '';
-
-                    dashRows.forEach(function (row) {
-                        var colA = (row[0] || '').toString().trim().toLowerCase();
-                        var colB = (row[1] || '').toString().trim();
-
-                        // Extract period from "Resultado do mês 2/2026"
-                        if (colA.indexOf('resultado') >= 0) {
-                            periodoLabel = row[0] || '';
-                            var match = colA.match(/(\d{1,2})\/(\d{4})/);
-                            if (match) {
-                                periodoMes = parseInt(match[1], 10);
-                                periodoAno = parseInt(match[2], 10);
-                            }
-                        }
-
-                        // Extract valor vendido
-                        if (colA.indexOf('valor') >= 0 && colA.indexOf('vendido') >= 0) {
-                            totais.valorFechado = parseMoedaBR(colB);
-                        }
-                    });
+                    // Show dashboard
+                    loadingEl.style.display = 'none';
+                    erroEl.style.display = 'none';
+                    conteudo.style.display = 'block';
+                    statusPill.className = 'status-pill ok';
+                    statusText.textContent = leads.length + ' leads · Mês ' + periodoMes + '/' + periodoAno;
+                    document.querySelector('.dot').classList.remove('pulse');
 
                     // Show dashboard
                     loadingEl.style.display = 'none';
@@ -1128,17 +1062,20 @@
                         resumo: resumoArr,
                         leads: leads,
                         negocios: negocios,
-                        periodo: { mes: periodoMes, ano: periodoAno, label: periodoLabel }
+                        periodo: { mes: periodoMes, ano: periodoAno, label: '' }
                     });
                 })
                 .catch(function (err) {
-                    showErr('❌ Não foi possível carregar os dados da planilha.<br><br>' +
-                        '<strong>Erro:</strong> ' + (err.message || String(err)) + '<br><br>' +
-                        '<strong>Verifique:</strong><br>' +
-                        '1. A planilha deve estar com "Qualquer pessoa com o link pode ver"<br>' +
-                        '2. O ID da planilha no código está correto: <code>' + SPREADSHEET_ID + '</code><br>' +
-                        '3. As abas "Dados", "Resumo" e "Dashboard" existem na planilha');
+                    showErr('❌ Não foi possível carregar os dados do Worker.<br><br>' +
+                        '<strong>Erro:</strong> ' + (err.message || String(err)));
                 });
+            }
+
+            // Carga inicial
+            carregarDados().then(processarDados).catch(function(err) {
+                showErr('❌ Não foi possível carregar os dados do Worker.<br><br>' +
+                    '<strong>Erro:</strong> ' + (err.message || String(err)));
+            });
 
             // ============================================================
             //  Render
@@ -1428,9 +1365,12 @@
                     var tb = document.getElementById('tblBody');
                     document.getElementById('filtroCount').textContent = filteredLeads.length + ' de ' + allLeads.length + ' leads';
                     tb.innerHTML = filteredLeads.length === 0
-                        ? '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:2rem;">Nenhum lead encontrado</td></tr>'
+                        ? '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:2rem;">Nenhum lead encontrado</td></tr>'
                         : filteredLeads.map(function (l) {
-                            return '<tr><td>' + (l.id || '') + '</td><td>' + (l.lead || '') + '</td><td>' + (l.etapa || '') + '</td><td>' + (l.fonte || '') + '</td><td>' + (l.responsavel || '') + '</td><td>' + (l.data || '') + '</td></tr>';
+                            var linkHtml = l.link
+                                ? '<a href="' + l.link + '" target="_blank" style="color:var(--brand);text-decoration:none;" title="Abrir conversa">💬</a>'
+                                : '—';
+                            return '<tr><td>' + (l.id || '') + '</td><td>' + (l.lead || '') + '</td><td>' + (l.etapa || '') + '</td><td>' + (l.fonte || '') + '</td><td>' + (l.responsavel || '') + '</td><td>' + (l.data || '') + '</td><td style="text-align:center;">' + linkHtml + '</td></tr>';
                         }).join('');
                 }
 
