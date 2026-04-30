@@ -1217,8 +1217,15 @@
 
                 function ehFechado(n) {
                     if (temColunaFechado) return n.fechado === 'Sim';
-                    // Fallback: checa pelo nome da etapa (sheet antiga)
                     return (n.etapa || '').trim() === 'Negócio Fechado';
+                }
+
+                function dentroDoMes(dataStr, mes, ano) {
+                    if (!dataStr) return false;
+                    // data vem como DD/MM/YYYY
+                    var parts = dataStr.split('/');
+                    if (parts.length !== 3) return false;
+                    return parseInt(parts[1], 10) === mes && parseInt(parts[2], 10) === ano;
                 }
 
                 // Build per-vendor stats from leads + negocios
@@ -1239,7 +1246,7 @@
                     var v = (n.responsavel || '').trim();
                     if (!v || SDR_RANKING.indexOf(v) !== -1) return;
                     if (!rankMap[v]) rankMap[v] = { vendedor: v, leads: 0, fechados: 0, valorTotal: 0, fontes: {}, fontesLeads: {} };
-                    if (ehFechado(n)) {
+                    if (ehFechado(n) && dentroDoMes(n.data, periodoMes, periodoAno)) {
                         rankMap[v].fechados++;
                         rankMap[v].valorTotal += parseMoedaBR(n.valor);
                         var fNeg = (n.fonte || '').trim();
@@ -1396,7 +1403,9 @@
                 renderTable(allLeads);
 
                 // ── Lista de Negócios ──────────────────────────────────────
-                var allNegocios = negocios;
+                var allNegocios = negocios.filter(function(n) {
+                    return ehFechado(n) && dentroDoMes(n.data, periodoMes, periodoAno);
+                });
 
                 // Populate vendedor filter
                 var vendedoresNeg = {};
