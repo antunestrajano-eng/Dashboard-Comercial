@@ -738,25 +738,24 @@
             <div id="_authErr">Senha incorreta. Tente novamente.</div>
         </div>
     </div>
-    <script>
+        <script>
         (function() {
             var _s = sessionStorage.getItem('_ca');
-            // verificaÃƒÂ§ÃƒÂ£o de sessÃƒÂ£o ativa
-            var _v = function(i) {
-                var _p = ['\x51\x32\x39', '\x75\x5a\x6d', '\x6c\x68\x62', '\x6d\x4e\x6c', '\x51\x44\x49', '\x32\x4d\x6a\x59\x3d'];
-                return i === atob(_p.join(''));
-            };
-            if (_s === '1') { document.getElementById('_authWall').style.display = 'none'; return; }
+            if (_s) { document.getElementById('_authWall').style.display = 'none'; }
             var _b = document.getElementById('_authBtn');
             var _i = document.getElementById('_authInput');
             var _e = document.getElementById('_authErr');
             var _try = function() {
-                if (_v(_i.value)) {
-                    sessionStorage.setItem('_ca', '1');
+                if (_i.value.trim() !== '') {
+                    sessionStorage.setItem('_ca', _i.value);
                     document.getElementById('_authWall').style.display = 'none';
+                    if (typeof carregarDados === 'function') {
+                        carregarDados().catch(function(e) { console.error(e); });
+                    } else {
+                        window.location.reload();
+                    }
                 } else {
                     _e.style.display = 'block';
-                    _i.value = '';
                     _i.focus();
                 }
             };
@@ -965,14 +964,28 @@
                 });
             }
 
-            function carregarDados() {
+                        function carregarDados() {
                 var ma = getMesAno();
-                var url = WORKER_URL + '/?mes=' + ma.mes + '&ano=' + ma.ano;
+                var pwd = sessionStorage.getItem('_ca') || '';
+                var url = WORKER_URL + '/?mes=' + ma.mes + '&ano=' + ma.ano + '&pwd=' + encodeURIComponent(pwd);
                 loadingEl.style.display = 'flex';
                 conteudo.style.display = 'none';
                 erroEl.style.display = 'none';
                 destruirCharts();
-                return fetch(url).then(function(r) { return r.json(); });
+                return fetch(url).then(function(r) { 
+                    if (r.status === 401) {
+                        sessionStorage.removeItem('_ca');
+                        var w = document.getElementById('_authWall');
+                        if (w) w.style.display = 'flex';
+                        var e = document.getElementById('_authErr');
+                        if (e) e.style.display = 'block';
+                        var i = document.getElementById('_authInput');
+                        if (i) i.value = '';
+                        loadingEl.style.display = 'none';
+                        throw new Error('Senha incorreta');
+                    }
+                    return r.json(); 
+                });
             }
 
             // ============================================================
