@@ -1,4 +1,4 @@
-﻿ <!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -254,7 +254,7 @@
         }
 
         .chartBox-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .chartBox-scroll canvas { min-width: 560px; }
+        .chart-inner { position: relative; height: 300px; }
 
         .chartBox {
             padding: 16px;
@@ -272,7 +272,13 @@
             letter-spacing: .04em;
         }
 
-        canvas { width: 100% !important; height: 260px !important; }
+        .chartBox > canvas { width: 100% !important; height: 260px !important; }
+
+        @media (max-width: 640px) {
+            .chartBox > canvas { height: 220px !important; }
+            .chart-inner { height: 260px; }
+            .chartBox { padding: 12px; }
+        }
 
         /* aâ€â‚¬aâ€â‚¬ TABLE aâ€â‚¬aâ€â‚¬ */
         .tableWrap {
@@ -831,7 +837,7 @@
                         </div>
                         <div class="chartBox chartBox-scroll" style="grid-column: span 2;">
                             <div class="chart-label">Por Vendedor</div>
-                            <canvas id="chResp"></canvas>
+                            <div class="chart-inner" id="chRespWrap"><canvas id="chResp"></canvas></div>
                         </div>
                         <div class="chartBox">
                             <div class="chart-label">Leads por Etapa</div><canvas id="chEtapa"></canvas>
@@ -879,7 +885,8 @@
                                     <th>Fonte</th>
                                     <th>Respons&aacute;vel</th>
                                     <th>Data</th>
-                                    <th>Conversa</th>
+                                                                        <th>Último Contato</th>
+                                    <th>Auditar</th>
                                 </tr>
                             </thead>
                             <tbody id="tblBody"></tbody>
@@ -1127,26 +1134,30 @@
                     }
                 };
 
+                var optsFunil = Object.assign({ indexAxis: 'y' }, opts);
+                optsFunil.scales = JSON.parse(JSON.stringify(opts.scales));
+                optsFunil.scales.x.ticks = Object.assign({}, optsFunil.scales.x.ticks, { precision: 0 });
                 chFunil = new Chart(document.getElementById('chFunil'), {
                     type: 'bar',
                     data: {
                         labels: ['Leads', 'Negócios', 'Fechados'],
-                        datasets: [{ data: [t.leads || 0, t.negocios || 0, t.fechados || 0], backgroundColor: ['rgba(110,231,255,.85)', 'rgba(255,204,102,.85)', 'rgba(87,242,135,.85)'], borderRadius: 10, borderSkipped: false }]
+                        datasets: [{ data: [t.leads || 0, t.negocios || 0, t.fechados || 0], backgroundColor: ['rgba(110,231,255,.85)', 'rgba(255,204,102,.85)', 'rgba(87,242,135,.85)'], borderRadius: 10, borderSkipped: false, maxBarThickness: 38, categoryPercentage: 0.7 }]
                     },
-                    options: Object.assign({ indexAxis: 'y' }, opts)
+                    options: optsFunil
                 });
 
-                var SDR_EXCLUIDOS = ['João Pedro'];
+                var SDR_EXCLUIDOS = ['João Pedro', 'Nayara Carvalho'];
                 var resumoVendedores = resumo.filter(function (r) {
                     return SDR_EXCLUIDOS.indexOf(r.vendedor) === -1;
                 });
 
                 if (resumoVendedores.length > 0) {
                     var canvasResp = document.getElementById('chResp');
-                    // Largura mínima dinâmica: 90px por vendedor, mínimo 600px
-                    var minW = Math.max(600, resumoVendedores.length * 90);
-                    canvasResp.style.minWidth = minW + 'px';
-                    canvasResp.style.height = '300px';
+                    // Largura do wrapper: 80px por vendedor (mínimo 560px); o excedente rola na horizontal
+                    var wrapResp = document.getElementById('chRespWrap');
+                    var boxW = wrapResp.parentElement.clientWidth - 32;
+                    var minW = Math.max(560, boxW, resumoVendedores.length * 80);
+                    wrapResp.style.width = minW + 'px';
 
                     chResp = new Chart(canvasResp, {
                         type: 'bar',
@@ -1154,13 +1165,13 @@
                         data: {
                             labels: resumoVendedores.map(function (r) { return r.vendedor; }),
                             datasets: [
-                                { label: 'Leads',    data: resumoVendedores.map(function (r) { return r.leads; }),    backgroundColor: 'rgba(110,231,255,.8)', borderRadius: 6 },
-                                { label: 'Negócios', data: resumoVendedores.map(function (r) { return r.negocios; }), backgroundColor: 'rgba(255,204,102,.8)', borderRadius: 6 },
-                                { label: 'Fechados', data: resumoVendedores.map(function (r) { return r.fechados; }), backgroundColor: 'rgba(87,242,135,.8)',  borderRadius: 6 }
+                                { label: 'Leads',    data: resumoVendedores.map(function (r) { return r.leads; }),    backgroundColor: 'rgba(110,231,255,.8)', borderRadius: 4, maxBarThickness: 22 },
+                                { label: 'Negócios', data: resumoVendedores.map(function (r) { return r.negocios; }), backgroundColor: 'rgba(255,204,102,.8)', borderRadius: 4, maxBarThickness: 22 },
+                                { label: 'Fechados', data: resumoVendedores.map(function (r) { return r.fechados; }), backgroundColor: 'rgba(87,242,135,.8)',  borderRadius: 4, maxBarThickness: 22 }
                             ]
                         },
                         options: {
-                            responsive: false,
+                            responsive: true,
                             maintainAspectRatio: false,
                             plugins: {
                                 legend: { display: true, labels: { color: (document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(231,236,255,.8)' : '#64748b'), font: { family: 'Inter', size: 12 } } },
@@ -1175,7 +1186,7 @@
                             layout: { padding: { top: 24 } },
                             scales: {
                                 x: { ticks: { color: (document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(231,236,255,.7)' : '#64748b'), font: { family: 'Inter', size: 11 }, maxRotation: 25 }, grid: { color: (document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)') } },
-                                y: { ticks: { color: (document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(231,236,255,.7)' : '#64748b'), font: { family: 'Inter' } }, grid: { color: (document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)') }, beginAtZero: true }
+                                y: { ticks: { color: (document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(231,236,255,.7)' : '#64748b'), font: { family: 'Inter' }, precision: 0 }, grid: { color: (document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)') }, beginAtZero: true }
                             }
                         }
                     });
@@ -1197,10 +1208,13 @@
                     etapaData.push(outros);
                 }
                 if (!etapaLabels.length) { etapaLabels = ['Sem dados']; etapaData = [0]; }
+                // Em telas estreitas a legenda à direita esmaga o gráfico; move para baixo
+                var legendPos = window.innerWidth < 640 ? 'bottom' : 'right';
+                var legendFontSize = window.innerWidth < 640 ? 10 : 12;
                 chEtapa = new Chart(document.getElementById('chEtapa'), {
                     type: 'doughnut',
                     data: { labels: etapaLabels, datasets: [{ data: etapaData, backgroundColor: ['#6ee7ff', '#9b8cff', '#57f287', '#ffcc66', '#ff6b6b', '#a78bfa', '#34d399', '#fbbf24'], borderWidth: 0 }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: (document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(231,236,255,.8)' : '#64748b'), font: { family: 'Inter' } } } } }
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: legendPos, labels: { boxWidth: 14, color: (document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(231,236,255,.8)' : '#64748b'), font: { family: 'Inter', size: legendFontSize } } } } }
                 });
 
                 var byFonte = {};
@@ -1211,7 +1225,7 @@
                 chFonte = new Chart(document.getElementById('chFonte'), {
                     type: 'doughnut',
                     data: { labels: fonteLabels, datasets: [{ data: fonteData, backgroundColor: ['#6ee7ff', '#ffcc66', '#57f287', '#9b8cff', '#ff6b6b', '#a78bfa'], borderWidth: 0 }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: (document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(231,236,255,.8)' : '#64748b'), font: { family: 'Inter' } } } } }
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: legendPos, labels: { boxWidth: 14, color: (document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(231,236,255,.8)' : '#64748b'), font: { family: 'Inter', size: legendFontSize } } } } }
                 });
 
                 // aâ€â‚¬aâ€â‚¬ Ranking de Vendedores aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬
@@ -1376,6 +1390,7 @@
 
                 renderRanking('vendas');
 
+
                 // Vendor filter
                 var allLeads = leads; // store reference for filtering
                 var vendedores = {};
@@ -1389,16 +1404,21 @@
                     vendedorSelect.appendChild(opt);
                 });
 
+                function extrairTelefone(lead) {
+                    var t = (lead.lead || '').replace(/[^0-9]/g, '');
+                    return t.length >= 10 ? t : '';
+                }
+
                 function renderTable(filteredLeads) {
                     var tb = document.getElementById('tblBody');
                     document.getElementById('filtroCount').textContent = filteredLeads.length + ' de ' + allLeads.length + ' leads';
                     tb.innerHTML = filteredLeads.length === 0
-                        ? '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:2rem;">Nenhum lead encontrado</td></tr>'
+                        ? '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:2rem;">Nenhum lead encontrado</td></tr>'
                         : filteredLeads.map(function (l) {
-                            var linkHtml = l.link
-                                ? '<a href="' + l.link + '" target="_blank" style="color:var(--brand);text-decoration:none;" title="Abrir conversa">Ã°Å¸â€™Â¬</a>'
-                                : '&mdash;';
-                            return '<tr><td>' + (l.id || '') + '</td><td>' + (l.lead || '') + '</td><td>' + (l.etapa || '') + '</td><td>' + (l.fonte || '') + '</td><td>' + (l.responsavel || '') + '</td><td>' + (l.data || '') + '</td><td style="text-align:center;">' + linkHtml + '</td></tr>';
+                            var tel = extrairTelefone(l);
+                            var ultimoContato = l._ultimoContato || '<span style="color:var(--text-muted);font-size:11px;">—</span>';
+                            var auditarBtn = '<button onclick="abrirAuditoria(\'' + tel + '\',\'' + (l.lead||'').replace(/'/g,'') + '\',\'' + (l.responsavel||'').replace(/'/g,'') + '\',\'' + (l.id||'') + '\')" style="background:var(--primary,#002966);color:#fff;border:none;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;">&#128269; Ver</button>';
+                            return '<tr><td>' + (l.id || '') + '</td><td>' + (l.lead || '') + '</td><td>' + (l.etapa || '') + '</td><td>' + (l.fonte || '') + '</td><td>' + (l.responsavel || '') + '</td><td>' + (l.data || '') + '</td><td style="text-align:center;font-size:12px;">' + ultimoContato + '</td><td style="text-align:center;">' + auditarBtn + '</td></tr>';
                         }).join('');
                 }
 
@@ -1407,9 +1427,39 @@
                     renderTable(!selected ? allLeads : allLeads.filter(function (l) { return l.responsavel === selected; }));
                 });
 
+                // Busca último contato de cada lead em background
                 renderTable(allLeads);
+                allLeads.forEach(function(l) {
+                    var tel = extrairTelefone(l);
+                    var key = tel || l.id;
+                    if (!key) return;
+                    fetch('https://renomearleads.antunestrajano.workers.dev/api/conversations/' + encodeURIComponent(key) + '?bitrixId=' + encodeURIComponent(l.id || '') + '&name=' + encodeURIComponent(l.lead || ''))
+                        .then(function(r){return r.json();})
+                        .then(function(data){
+                            if (data.messages && data.messages.length > 0) {
+                                var last = data.messages[data.messages.length - 1];
+                                var dt = new Date(last.createdAt || last.timestamp);
+                                var agora = new Date();
+                                var diffH = Math.floor((agora - dt) / 3600000);
+                                var diffD = Math.floor(diffH / 24);
+                                var label = diffD > 0 ? diffD + 'd atrás' : diffH + 'h atrás';
+                                var cor = diffD > 5 ? 'var(--red)' : diffD > 2 ? 'var(--orange)' : 'var(--green)';
+                                l._ultimoContato = '<span style="color:' + cor + ';font-weight:600;">' + label + '</span>';
+                            } else {
+                                l._ultimoContato = '<span style="color:var(--text-muted);font-size:11px;">Sem registro</span>';
+                            }
+                        }).catch(function(){});
+                });
+                // Re-render a cada 3s para exibir os últimos contatos conforme chegam
+                var _reRenderCount = 0;
+                var _reRenderTimer = setInterval(function(){
+                    _reRenderCount++;
+                    var sel = document.getElementById('filtroVendedor').value;
+                    renderTable(!sel ? allLeads : allLeads.filter(function(l){return l.responsavel===sel;}));
+                    if (_reRenderCount >= 10) clearInterval(_reRenderTimer);
+                }, 3000);
 
-                // aâ€â‚¬aâ€â‚¬ Lista de Negócios aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬aâ€â‚¬
+                // aâ€ â‚¬aâ€ â‚¬ Lista de Negócios aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬aâ€ â‚¬
                 var allNegocios = negocios.filter(function(n) {
                     return ehFechado(n) && dentroDoMes(n.data, periodoMes, periodoAno);
                 });
@@ -1466,7 +1516,7 @@
 
                 // Preenche ranking expandido para impressÃƒÂ£o (todas as abas de uma vez)
                 var modos = ['vendas', 'fechados', 'taxa', 'fonte'];
-                var titulosModo = { vendas: 'Ã°Å¸â€™Â° Total de Vendas', fechados: 'Ã°Å¸Â¤Â Negócios Fechados', taxa: 'Ã°Å¸â€œË† Taxa de ConversÃƒÂ£o', fonte: 'Ã°Å¸â€Â Fechados por Fonte' };
+                var titulosModo = { vendas: 'Ã°Å¸â€™Â° Total de Vendas', fechados: 'Ã°Å¸Â¤Â  Negócios Fechados', taxa: 'Ã°Å¸â€œË† Taxa de ConversÃƒÂ£o', fonte: 'Ã°Å¸â€ Â  Fechados por Fonte' };
                 var printAll = document.getElementById('rankPrintAll');
                 modos.forEach(function(m) {
                     renderRanking(m);
@@ -1653,6 +1703,84 @@
                 if (btn) btn.innerHTML = '&#9728;&#65039;';
             }
         })();
+    </script>
+
+    <!-- Modal de Auditoria de Conversa -->
+    <div id="conversaModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);justify-content:center;align-items:center;">
+        <div style="background:var(--bg-card,#fff);width:95%;max-width:560px;height:80vh;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 25px 50px rgba(0,0,0,.25);">
+            <div id="conversaHeader" style="padding:14px 20px;border-bottom:1px solid var(--border,#e2e8f0);display:flex;justify-content:space-between;align-items:center;background:var(--bg-card,#fff);">
+                <div>
+                    <div id="conversaLeadName" style="font-weight:700;font-size:15px;color:var(--text,#0f172a);"></div>
+                    <div id="conversaSellerName" style="font-size:12px;color:var(--text-muted,#64748b);margin-top:2px;">Vendedor</div>
+                </div>
+                <button onclick="fecharAuditoria()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-muted,#64748b);padding:4px 8px;">&times;</button>
+            </div>
+            <div id="conversaBody" style="flex:1;overflow-y:auto;padding:16px;background:#e5ddd5;display:flex;flex-direction:column;gap:8px;">
+                <div style="text-align:center;padding:40px;color:#667781;">Carregando...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function abrirAuditoria(tel, leadName, sellerName, bitrixId) {
+            var modal = document.getElementById('conversaModal');
+            modal.style.display = 'flex';
+            document.getElementById('conversaLeadName').textContent = leadName || tel;
+            document.getElementById('conversaSellerName').textContent = 'Vendedor: ' + (sellerName || '—');
+            document.getElementById('conversaBody').innerHTML = '<div style="text-align:center;padding:40px;color:#667781;">Carregando mensagens...</div>';
+
+            var key = tel || bitrixId;
+            var qs = '?bitrixId=' + encodeURIComponent(bitrixId || '') + '&name=' + encodeURIComponent(leadName || '');
+            fetch('https://renomearleads.antunestrajano.workers.dev/api/conversations/' + encodeURIComponent(key) + qs)
+                .then(function(r){return r.json();})
+                .then(function(data){
+                    var body = document.getElementById('conversaBody');
+                    if (!data.messages || data.messages.length === 0) {
+                        var linkWhatcrm = tel
+                            ? '<br><a href="https://web.whatcrm.net/messenger/19055/' + tel + '" target="_blank" style="display:inline-block;margin-top:12px;background:#25d366;color:#fff;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;">Abrir conversa no WhatCRM</a>'
+                            : '';
+                        body.innerHTML = '<div style="text-align:center;padding:40px;color:#667781;"><div style="font-size:32px;margin-bottom:8px;">&#128172;</div>Nenhuma mensagem registrada ainda.<br><span style="font-size:12px;">As próximas interações aparecerão aqui.</span>' + linkWhatcrm + '</div>';
+                        return;
+                    }
+                    if (data.sellerName && data.sellerName !== 'Vendedor') {
+                        document.getElementById('conversaSellerName').textContent = 'Vendedor: ' + data.sellerName;
+                    }
+                    body.innerHTML = data.messages.map(function(msg){
+                        var isSeller = msg.senderType === 'seller' || msg.from === 'seller';
+                        var content = msg.content || msg.text || '';
+                        if (/^https?:\/\/\S+\.(oga|ogg|mp3|m4a|wav)(\?|$)/i.test(content)) {
+                            content = '<audio controls src="' + content + '" style="max-width:220px;height:36px;"></audio>';
+                        } else if (/^https?:\/\/\S+\.(jpe?g|png|webp|gif)(\?|$)/i.test(content)) {
+                            content = '<img src="' + content + '" style="max-width:100%;border-radius:6px;" loading="lazy"/>';
+                        } else if (content.length > 120 && content.indexOf(' ') === -1 && content.indexOf('http') !== 0) {
+                            content = '&#128247; [Mídia]';
+                        }
+                        var time = '';
+                        try {
+                            var d = new Date(msg.createdAt || msg.timestamp);
+                            time = d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+                        } catch(e){}
+                        return '<div style="display:flex;flex-direction:column;align-items:' + (isSeller?'flex-end':'flex-start') + ';">' +
+                            '<div style="max-width:75%;padding:6px 10px;border-radius:8px;' +
+                            'border-top-' + (isSeller?'right':'left') + '-radius:0;' +
+                            'background:' + (isSeller?'#d9fdd3':'#fff') + ';color:#111b21;' +
+                            'box-shadow:0 1px 0.5px rgba(11,20,26,.13);word-break:break-word;white-space:pre-wrap;font-size:13.5px;line-height:1.4;">' +
+                            content +
+                            '<div style="text-align:right;font-size:10.5px;color:#667781;margin-top:2px;">' + time + '</div>' +
+                            '</div></div>';
+                    }).join('');
+                    body.scrollTop = body.scrollHeight;
+                })
+                .catch(function(e){
+                    document.getElementById('conversaBody').innerHTML = '<div style="text-align:center;padding:40px;color:#ef4444;">Erro ao carregar: ' + e.message + '</div>';
+                });
+
+            modal.onclick = function(e) { if (e.target === modal) fecharAuditoria(); };
+        }
+
+        function fecharAuditoria() {
+            document.getElementById('conversaModal').style.display = 'none';
+        }
     </script>
 </body>
 </html>
