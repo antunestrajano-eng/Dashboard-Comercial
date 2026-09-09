@@ -1433,7 +1433,7 @@
                     var tel = extrairTelefone(l);
                     var key = tel || l.id;
                     if (!key) return;
-                    fetch('https://renomearleads.antunestrajano.workers.dev/api/conversations/' + encodeURIComponent(key) + '?bitrixId=' + encodeURIComponent(l.id || '') + '&name=' + encodeURIComponent(l.lead || ''))
+                    fetch('https://renomearleads.antunestrajano.workers.dev/api/conversations/' + encodeURIComponent(key) + '?bitrixId=' + encodeURIComponent(l.id || '') + '&name=' + encodeURIComponent(l.lead || '') + '&pwd=' + encodeURIComponent(sessionStorage.getItem('_ca') || ''))
                         .then(function(r){return r.json();})
                         .then(function(data){
                             if (data.messages && data.messages.length > 0) {
@@ -1730,7 +1730,7 @@
             document.getElementById('conversaBody').innerHTML = '<div style="text-align:center;padding:40px;color:#667781;">Carregando mensagens...</div>';
 
             var key = tel || bitrixId;
-            var qs = '?bitrixId=' + encodeURIComponent(bitrixId || '') + '&name=' + encodeURIComponent(leadName || '');
+            var qs = '?bitrixId=' + encodeURIComponent(bitrixId || '') + '&name=' + encodeURIComponent(leadName || '') + '&pwd=' + encodeURIComponent(sessionStorage.getItem('_ca') || '');
             fetch('https://renomearleads.antunestrajano.workers.dev/api/conversations/' + encodeURIComponent(key) + qs)
                 .then(function(r){return r.json();})
                 .then(function(data){
